@@ -6,11 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.userDelete = exports.userPatch = exports.userPost = exports.userGetById = exports.usersGet = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const models_1 = require("../models");
+const helpers_1 = require("../helpers");
 const usersGet = async (req, res) => {
     try {
         const users = (await models_1.User.findAndCount({
             where: { state: true },
-            order: { updatedAt: "DESC", createdAt: "DESC" }
+            order: { updatedAt: "DESC", createdAt: "DESC" },
         })) || [];
         return res.status(200).json({
             total: users[1],
@@ -48,7 +49,11 @@ const userPost = async (req, res) => {
         const salt = bcryptjs_1.default.genSaltSync();
         user.password = bcryptjs_1.default.hashSync(password, salt);
         await user.save();
-        return res.status(201).json({ user });
+        const token = await (0, helpers_1.generateJWT)(user.uId);
+        return res.status(201).json({
+            user,
+            token,
+        });
     }
     catch (error) {
         if (error instanceof Error)
@@ -60,19 +65,12 @@ const userPatch = async (req, res) => {
     try {
         const { id } = req.params;
         const payload = req.body;
-        const exist = await models_1.User.findOneBy({ uId: id, state: true });
-        //Check user is in db
-        /*if (!exist) {
-            return res.status(406).json({
-                message: "ACTION NOT ALLOWED!!!",
-            });
-        }*/
         if (payload.password) {
             const salt = bcryptjs_1.default.genSaltSync();
             payload.password = bcryptjs_1.default.hashSync(payload.password, salt);
         }
         await models_1.User.update({ uId: id }, payload);
-        return res.status(201).json();
+        return res.status(201).json({ msg: "User updated" });
     }
     catch (error) {
         if (error instanceof Error)
@@ -84,13 +82,6 @@ const userDelete = async (req, res) => {
     try {
         const { id } = req.params;
         const payload = req.body;
-        const exist = await models_1.User.findOneBy({ uId: id, state: true });
-        //Check user is in db
-        /*if (!exist) {
-            return res.status(406).json({
-                message: "ACTION NOT ALLOWED",
-            });
-        }*/
         // set state = false but not delete user from db
         await models_1.User.update({ uId: id }, payload);
         // delete user from db

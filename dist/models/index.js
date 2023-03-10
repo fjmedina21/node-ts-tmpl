@@ -14,7 +14,5 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Server = void 0;
 __exportStar(require("./entities.model"), exports);
-var server_1 = require("./server");
-Object.defineProperty(exports, "Server", { enumerable: true, get: function () { return server_1.Server; } });
+__exportStar(require("./server"), exports);

@@ -8,14 +8,14 @@ import helmet from "helmet";
 //import path from "path";
 
 import { AppDataSource } from "../config/db.config";
-import { userRoutes } from "../routes";
+import { userRoutes, authRoutes } from "../routes";
 
 export class Server {
 	private app: Express;
 	private PORT: number;
 	private readonly path = {
-		users: "/users",
 		auth: "/auth",
+		users: "/users",
 	};
 
 	contructor(): void {
@@ -31,7 +31,7 @@ export class Server {
 	private middlewares(): void {
 		this.app.use(cors());
 		this.app.use(morgan("dev"));
-		this.app.use(helmet()); 
+		this.app.use(helmet());
 		this.app.use(express.json());
 		this.app.use(express.urlencoded());
 		//this.app.use(express.static(path.join(__dirname, "../public")));
@@ -46,6 +46,7 @@ export class Server {
 	}
 
 	private routes(): void {
+		this.app.use(this.path.auth, authRoutes);
 		this.app.use(this.path.users, userRoutes);
 	}
 

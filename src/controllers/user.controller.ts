@@ -2,21 +2,20 @@ import { Response, Request } from "express";
 import bcryptjs from "bcryptjs";
 
 import { User } from "../models";
-import { userIdExist } from "../helpers";
+import { generateJWT } from "../helpers";
 
 export const usersGet = async (req: Request, res: Response) => {
 	try {
 		const users =
 			(await User.findAndCount({
 				where: { state: true },
-				order: { updatedAt: "DESC", createdAt: "DESC" }
+				order: { updatedAt: "DESC", createdAt: "DESC" },
 			})) || [];
 
 		return res.status(200).json({
 			total: users[1],
 			users: users[0],
 		});
-
 	} catch (error: unknown) {
 		if (error instanceof Error) return res.status(400).json(error);
 	}
@@ -49,8 +48,12 @@ export const userPost = async (req: Request, res: Response) => {
 		user.password = bcryptjs.hashSync(password, salt);
 
 		await user.save();
+		const token = await generateJWT(user.uId);
 
-		return res.status(201).json({ user });
+		return res.status(201).json({
+			user,
+			token,
+		});
 	} catch (error: unknown) {
 		if (error instanceof Error) return res.status(400).json(error);
 	}
@@ -61,15 +64,6 @@ export const userPatch = async (req: Request, res: Response) => {
 		const { id } = req.params;
 		const payload = req.body;
 
-		const exist = await User.findOneBy({ uId: id, state:true });
-
-		//Check user is in db
-		/*if (!exist) {
-			return res.status(406).json({
-				message: "ACTION NOT ALLOWED!!!",
-			});
-		}*/
-
 		if (payload.password) {
 			const salt = bcryptjs.genSaltSync();
 			payload.password = bcryptjs.hashSync(payload.password, salt);
@@ -77,9 +71,9 @@ export const userPatch = async (req: Request, res: Response) => {
 
 		await User.update({ uId: id }, payload);
 
-		return res.status(201).json();
+		return res.status(201).json({ msg: "User updated" });
 	} catch (error: unknown) {
-		if (error instanceof Error) return res.status(400).json({error});
+		if (error instanceof Error) return res.status(400).json({ error });
 	}
 };
 
@@ -87,15 +81,6 @@ export const userDelete = async (req: Request, res: Response) => {
 	try {
 		const { id } = req.params;
 		const payload = req.body;
-
-		const exist = await User.findOneBy({ uId: id, state: true });
-
-		//Check user is in db
-		/*if (!exist) {
-			return res.status(406).json({
-				message: "ACTION NOT ALLOWED",
-			});
-		}*/
 
 		// set state = false but not delete user from db
 		await User.update({ uId: id }, payload);

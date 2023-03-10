@@ -7,7 +7,7 @@ export const emailExist: CustomValidator = async (email: string) => {
 
 	if (exist) {
 		return Promise.reject(
-			"Someone already has this email address. Try another one."
+			"Someone already has that email address. Try another one."
 		);
 	}
 };

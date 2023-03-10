@@ -10,13 +10,14 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
 const helmet_1 = __importDefault(require("helmet"));
+//import path from "path";
 const db_config_1 = require("../config/db.config");
 const routes_1 = require("../routes");
 class Server {
     constructor() {
         this.path = {
-            users: "/users",
             auth: "/auth",
+            users: "/users",
         };
     }
     contructor() {
@@ -30,7 +31,7 @@ class Server {
     middlewares() {
         this.app.use((0, cors_1.default)());
         this.app.use((0, morgan_1.default)("dev"));
-        this.app.use((0, helmet_1.default)()); // HELMET: helps you secure your Express.js apps by setting various HTTP headers.
+        this.app.use((0, helmet_1.default)());
         this.app.use(express_1.default.json());
         this.app.use(express_1.default.urlencoded());
         //this.app.use(express.static(path.join(__dirname, "../public")));
@@ -45,6 +46,7 @@ class Server {
         }
     }
     routes() {
+        this.app.use(this.path.auth, routes_1.authRoutes);
         this.app.use(this.path.users, routes_1.userRoutes);
     }
     listen() {

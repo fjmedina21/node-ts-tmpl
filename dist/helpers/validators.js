@@ -6,7 +6,7 @@ const emailExist = async (email) => {
     // check if email already in db
     const exist = await models_1.User.findOneBy({ email: email });
     if (exist) {
-        return Promise.reject("Someone already has this email address. Try another one.");
+        return Promise.reject("Someone already has that email address. Try another one.");
     }
 };
 exports.emailExist = emailExist;
