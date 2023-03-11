@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { env } from "process";
 import "dotenv/config";
 
 import express, { Express } from "express";
@@ -20,7 +21,8 @@ export class Server {
 
 	contructor(): void {
 		this.app = express();
-		this.PORT = 3000;
+		console.log(process.env.SV_PORT);
+		this.PORT = process.env.SV_PORT || 3000;
 
 		this.dbConnection();
 		this.middlewares();

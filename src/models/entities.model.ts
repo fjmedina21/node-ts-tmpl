@@ -1,10 +1,10 @@
 import {
+	BaseEntity,
 	Column,
 	Entity,
 	PrimaryGeneratedColumn,
 	CreateDateColumn,
-	UpdateDateColumn,
-	BaseEntity
+	UpdateDateColumn
 } from "typeorm";
 
 @Entity()
@@ -26,6 +26,9 @@ export class User extends BaseEntity {
 
 	@Column({ default: true })
 	state: boolean;
+
+	@Column({ default: false })
+	isAdmin: boolean;
 
 	@CreateDateColumn()
 	createdAt: Date;

@@ -1,10 +1,10 @@
 import { Response, Request } from "express";
-import bcryptjs from "bcryptjs";
+import bcryptjs, { genSaltSync } from "bcryptjs";
 
 import { User } from "../models";
 import { generateJWT } from "../helpers";
 
-export const usersGet = async (req: Request, res: Response) => {
+export async function usersGet(req: Request, res: Response) {
 	try {
 		const users =
 			(await User.findAndCount({
@@ -19,9 +19,9 @@ export const usersGet = async (req: Request, res: Response) => {
 	} catch (error: unknown) {
 		if (error instanceof Error) return res.status(400).json(error);
 	}
-};
+}
 
-export const userGetById = async (req: Request, res: Response) => {
+export async function userGetById(req: Request, res: Response) {
 	try {
 		const { id } = req.params;
 		const user = (await User.findOneBy({ uId: id, state: true })) || {};
@@ -32,23 +32,23 @@ export const userGetById = async (req: Request, res: Response) => {
 	} catch (error: unknown) {
 		if (error instanceof Error) return res.status(400).json(error);
 	}
-};
+}
 
-export const userPost = async (req: Request, res: Response) => {
+export async function userPost(req: Request, res: Response) {
 	try {
-		const { firstName, lastName, email, password } = req.body;
+		const { firstName, lastName, email, password, isAdmin } = req.body;
 		const user: User = new User();
 
 		user.firstName = firstName;
 		user.lastName = lastName;
 		user.email = email;
+		user.isAdmin = isAdmin;
 
 		//Encriptar la contraseña
-		const salt: string = bcryptjs.genSaltSync();
-		user.password = bcryptjs.hashSync(password, salt);
+		user.password = bcryptjs.hashSync(password, 15);
 
 		await user.save();
-		const token = await generateJWT(user.uId);
+		const token = await generateJWT(user.uId, user.isAdmin);
 
 		return res.status(201).json({
 			user,
@@ -57,27 +57,35 @@ export const userPost = async (req: Request, res: Response) => {
 	} catch (error: unknown) {
 		if (error instanceof Error) return res.status(400).json(error);
 	}
-};
+}
 
-export const userPatch = async (req: Request, res: Response) => {
+export async function userPatch(req: Request, res: Response) {
 	try {
 		const { id } = req.params;
-		const payload = req.body;
+		const { firstName, lastName, email, isAdmin } = req.body;
+		let { password } = req.body;
 
-		if (payload.password) {
-			const salt = bcryptjs.genSaltSync();
-			payload.password = bcryptjs.hashSync(payload.password, salt);
+		const user: User | null = await User.findOneBy({ uId: id });
+
+		if (password) password = bcryptjs.hashSync(password, 15);
+
+		if (user) {
+			user.firstName = firstName ? firstName : user.firstName;
+			user.lastName = lastName;
+			user.email = email ? email : user.email;
+			user.password = password ? password : user.password;
+			user.isAdmin = isAdmin ? isAdmin : user.isAdmin;
+
+			await user.save();
 		}
 
-		await User.update({ uId: id }, payload);
-
-		return res.status(201).json({ msg: "User updated" });
+		return res.status(200).json({ msg: "User Updated", user });
 	} catch (error: unknown) {
 		if (error instanceof Error) return res.status(400).json({ error });
 	}
-};
+}
 
-export const userDelete = async (req: Request, res: Response) => {
+export async function userDelete(req: Request, res: Response) {
 	try {
 		const { id } = req.params;
 		const payload = req.body;
@@ -85,11 +93,8 @@ export const userDelete = async (req: Request, res: Response) => {
 		// set state = false but not delete user from db
 		await User.update({ uId: id }, payload);
 
-		// delete user from db
-		//await User.delete({ uId: id });
-
 		return res.status(204).json();
 	} catch (error: unknown) {
 		if (error instanceof Error) return res.status(400).json(error);
 	}
-};
+}

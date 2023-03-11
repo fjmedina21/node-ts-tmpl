@@ -6,11 +6,11 @@ const typeorm_1 = require("typeorm");
 const models_1 = require("../models");
 exports.AppDataSource = new typeorm_1.DataSource({
     type: "mysql",
-    host: "localhost",
+    host: process.env.DB_HOST,
     port: 3307,
-    username: "root",
-    password: "",
-    database: "test",
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
     entities: [models_1.User],
     synchronize: true,
 });

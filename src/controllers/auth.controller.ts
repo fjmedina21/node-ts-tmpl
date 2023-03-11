@@ -22,7 +22,7 @@ export const login = async (req: Request, res: Response) => {
 			});
 		}
 
-		const token = await generateJWT(user.uId);
+		const token = await generateJWT(user.uId, user.isAdmin);
 
 		res.status(200).json({
 			user,

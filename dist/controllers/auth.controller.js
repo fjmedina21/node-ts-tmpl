@@ -22,7 +22,7 @@ const login = async (req, res) => {
                 msg: "please check your credentials and try again.",
             });
         }
-        const token = await (0, helpers_1.generateJWT)(user.uId);
+        const token = await (0, helpers_1.generateJWT)(user.uId, user.isAdmin);
         res.status(200).json({
             user,
             token,

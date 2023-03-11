@@ -22,7 +22,7 @@ class Server {
     }
     contructor() {
         this.app = (0, express_1.default)();
-        this.PORT = 3000;
+        this.PORT = process.env.SV_PORT || 3000;
         this.dbConnection();
         this.middlewares();
         this.routes();

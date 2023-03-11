@@ -1,13 +1,15 @@
+import "dotenv/config"
+
 import jwt from "jsonwebtoken";
 
-export function generateJWT(uId: string): Promise<unknown> {
+export function generateJWT(uId: string, role:boolean): Promise<unknown> {
 	return new Promise((resolve, reject) => {
-		const payload: object = { uId };
+		const payload: object = { uId, role };
 
 		jwt.sign(
 			payload,
-			"secrect-key",
-			{ expiresIn: "4h" },
+			process.env.JWT_SK,
+			{ expiresIn: "2h" },
 			(error: unknown, token: string | undefined) => {
 				if (error instanceof Error) reject(error);
 				else resolve(token);

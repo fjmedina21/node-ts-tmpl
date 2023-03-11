@@ -3,7 +3,7 @@ import { check } from "express-validator";
 
 import { login, userPost } from "../controllers";
 import { validateFields } from "../middlewares";
-import { emailExist } from '../helpers';
+import { emailExist, isEmail } from "../helpers";
 
 const authRoutes = Router();
 
