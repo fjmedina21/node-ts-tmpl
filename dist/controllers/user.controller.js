@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userDelete = exports.userPatch = exports.userPost = exports.userGetById = exports.usersGet = void 0;
+exports.userDelete = exports.userPut = exports.userPost = exports.userGetById = exports.usersGet = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const models_1 = require("../models");
 const helpers_1 = require("../helpers");
@@ -34,7 +34,7 @@ async function userGetById(req, res) {
     }
     catch (error) {
         if (error instanceof Error)
-            return res.status(400).json(error);
+            return res.status(400).json({ error });
     }
 }
 exports.userGetById = userGetById;
@@ -57,11 +57,11 @@ async function userPost(req, res) {
     }
     catch (error) {
         if (error instanceof Error)
-            return res.status(400).json(error);
+            return res.status(400).json({ error });
     }
 }
 exports.userPost = userPost;
-async function userPatch(req, res) {
+async function userPut(req, res) {
     try {
         const { id } = req.params;
         const { firstName, lastName, email, isAdmin } = req.body;
@@ -84,7 +84,7 @@ async function userPatch(req, res) {
             return res.status(400).json({ error });
     }
 }
-exports.userPatch = userPatch;
+exports.userPut = userPut;
 async function userDelete(req, res) {
     try {
         const { id } = req.params;

@@ -2,29 +2,41 @@ import { User } from "../models";
 //import { CustomValidator } from 'express-validator';
 
 export async function emailExist(email: string) {
-	const exist: User | null = await User.findOneBy({ email: email });
+	try {
+		const exist: User | null = await User.findOneBy({ email: email });
 
-	if (exist) {
-		return Promise.reject(
-			"Someone already has that email address. Try another one."
-		);
+		if (exist) {
+			return Promise.reject(
+				"Someone already has that email address. Try another one."
+			);
+		}
+	} catch (error: unknown) {
+		return Promise.reject(error);
 	}
 }
 
 export function isEmail(email: string) {
-	const emailRegex = /^[\w-\.]+@([\w-]+\\.)+[\w-]{2,3}$/;
+	try {
+		const emailRegex: RegExp = /^[\w-\.]+@([\w-]+\\.)+[\w-]{2,4}$/;
 
-	const isMatch = emailRegex.test(email);
+		const isMatch = emailRegex.test(email);
 
-	if (!isMatch) {
-		return Promise.reject("Invalid email");
+		if (!isMatch) {
+			return Promise.reject("Invalid email");
+		}
+	} catch (error: unknown) {
+		return Promise.reject(error);
 	}
 }
 
 export async function userIdExist(id: string) {
-	const exist: User | null = await User.findOneBy({ uId: id, state: true });
+	try {
+		const exist: User | null = await User.findOneBy({ uId: id, state: true });
 
-	if (!exist) {
-		return Promise.reject("User not found");
+		if (!exist) {
+			return Promise.reject("User not found");
+		}
+	} catch (error: unknown) {
+		return Promise.reject(error);
 	}
 }

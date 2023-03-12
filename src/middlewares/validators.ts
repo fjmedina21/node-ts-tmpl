@@ -13,7 +13,7 @@ export async function validateJWT(
 
 		if (!token) return res.status(401).json({ mgs: "Token is mising" });
 
-		const payload: string | JwtPayload = jwt.verify(token, "secrect-key");
+		const payload: string | JwtPayload = jwt.verify(token, "process.env.JWT_SK");
 		const { uId } = payload as JwtPayload;
 
 		//Check if logged user exist
@@ -40,7 +40,7 @@ export async function isAdmin(req: Request, res: Response, next: NextFunction) {
 			return res.status(401).json({ mgs: "Token is mising" });
 		}
 
-		const payload: string | JwtPayload = jwt.verify(token, "secrect-key");
+		const payload: string | JwtPayload = jwt.verify(token, "process.env.JWT_SK");
 		const { role } = payload as JwtPayload;
 
 		if (!role) {

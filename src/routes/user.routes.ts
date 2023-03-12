@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { check } from "express-validator";
 
-import { usersGet, userGetById, userPatch, userDelete } from "../controllers";
+import { usersGet, userGetById, userPut, userDelete } from "../controllers";
 
 import { userIdExist, emailExist } from "../helpers";
 import { validateFields, validateJWT, isAdmin } from "../middlewares";
@@ -33,7 +33,7 @@ userRoutes.put(
 		check("email").custom(emailExist),
 		validateFields,
 	],
-	userPatch
+	userPut
 );
 
 userRoutes.delete(

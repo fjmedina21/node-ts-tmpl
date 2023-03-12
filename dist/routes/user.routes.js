@@ -24,7 +24,7 @@ userRoutes.put("/:id", [
     (0, express_validator_1.check)("email", "Invalid email").isEmail(),
     (0, express_validator_1.check)("email").custom(helpers_1.emailExist),
     middlewares_1.validateFields,
-], controllers_1.userPatch);
+], controllers_1.userPut);
 userRoutes.delete("/:id", [
     middlewares_1.isAdmin,
     middlewares_1.validateJWT,

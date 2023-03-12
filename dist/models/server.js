@@ -17,12 +17,13 @@ class Server {
     constructor() {
         this.path = {
             auth: "/auth",
+            search: "/search",
             users: "/users",
         };
     }
     contructor() {
         this.app = (0, express_1.default)();
-        this.PORT = process.env.SV_PORT || 3000;
+        this.PORT = 3000;
         this.dbConnection();
         this.middlewares();
         this.routes();
@@ -47,6 +48,7 @@ class Server {
     }
     routes() {
         this.app.use(this.path.auth, routes_1.authRoutes);
+        this.app.use(this.path.search, routes_1.searchRoutes);
         this.app.use(this.path.users, routes_1.userRoutes);
     }
     listen() {

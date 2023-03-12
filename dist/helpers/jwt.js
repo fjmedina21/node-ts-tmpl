@@ -9,7 +9,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 function generateJWT(uId, role) {
     return new Promise((resolve, reject) => {
         const payload = { uId, role };
-        jsonwebtoken_1.default.sign(payload, process.env.JWT_SK, { expiresIn: "2h" }, (error, token) => {
+        jsonwebtoken_1.default.sign(payload, "process.env.JWT_SK", { expiresIn: "2h" }, (error, token) => {
             if (error instanceof Error)
                 reject(error);
             else

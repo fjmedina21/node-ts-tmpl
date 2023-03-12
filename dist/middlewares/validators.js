@@ -11,7 +11,7 @@ async function validateJWT(req, res, next) {
         const token = req.header("x-token");
         if (!token)
             return res.status(401).json({ mgs: "Token is mising" });
-        const payload = jsonwebtoken_1.default.verify(token, "secrect-key");
+        const payload = jsonwebtoken_1.default.verify(token, "process.env.JWT_SK");
         const { uId } = payload;
         //Check if logged user exist
         const user = await models_1.User.findOneBy({
@@ -35,7 +35,7 @@ async function isAdmin(req, res, next) {
         if (!token) {
             return res.status(401).json({ mgs: "Token is mising" });
         }
-        const payload = jsonwebtoken_1.default.verify(token, "secrect-key");
+        const payload = jsonwebtoken_1.default.verify(token, "process.env.JWT_SK");
         const { role } = payload;
         if (!role) {
             return res.status(403).json({ msg: "action not allowed" });

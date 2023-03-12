@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import { env } from "process";
 import "dotenv/config";
 
 import express, { Express } from "express";
@@ -9,20 +8,20 @@ import helmet from "helmet";
 //import path from "path";
 
 import { AppDataSource } from "../config/db.config";
-import { userRoutes, authRoutes } from "../routes";
+import { userRoutes, authRoutes, searchRoutes } from "../routes";
 
 export class Server {
 	private app: Express;
 	private PORT: number;
 	private readonly path = {
 		auth: "/auth",
+		search: "/search",
 		users: "/users",
 	};
 
-	contructor(): void {
+	constructor() {
 		this.app = express();
-		console.log(process.env.SV_PORT);
-		this.PORT = process.env.SV_PORT || 3000;
+		this.PORT = 3000;
 
 		this.dbConnection();
 		this.middlewares();
@@ -49,6 +48,7 @@ export class Server {
 
 	private routes(): void {
 		this.app.use(this.path.auth, authRoutes);
+		this.app.use(this.path.search, searchRoutes);
 		this.app.use(this.path.users, userRoutes);
 	}
 

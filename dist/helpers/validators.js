@@ -11,7 +11,7 @@ async function emailExist(email) {
 }
 exports.emailExist = emailExist;
 function isEmail(email) {
-    const emailRegex = /^[\w-\.]+@([\w-]+\\.)+[\w-]{2,3}$/;
+    const emailRegex = new RegExp(/^[\w-\.]+@([\w-]+\\.)+[\w-]{2,3}$/);
     const isMatch = emailRegex.test(email);
     if (!isMatch) {
         return Promise.reject("Invalid email");

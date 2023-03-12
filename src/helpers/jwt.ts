@@ -8,8 +8,8 @@ export function generateJWT(uId: string, role:boolean): Promise<unknown> {
 
 		jwt.sign(
 			payload,
-			process.env.JWT_SK,
-			{ expiresIn: "2h" },
+			"process.env.JWT_SK",
+			{ expiresIn: process.env.JWT_EXPIRES_IN },
 			(error: unknown, token: string | undefined) => {
 				if (error instanceof Error) reject(error);
 				else resolve(token);
