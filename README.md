@@ -1,3 +1,3 @@
-#### Template Project - NodeJS + Express + TypeORM + TypeScript
+# Template Project - NodeJS + Express + TypeORM + TypeScript
 
-## RUN npm i
+#### RUN npm i
