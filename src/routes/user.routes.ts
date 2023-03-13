@@ -6,7 +6,6 @@ import {
 	GetUsers,
 	PatchUser,
 	DeleteUser,
-	ChangeUserPassword,
 } from "../controllers";
 
 import { UserIdExist } from "../helpers";
@@ -36,29 +35,6 @@ UserRoutes.patch(
 		ValidateFields,
 	],
 	PatchUser
-);
-
-UserRoutes.patch(
-	"/password/:id",
-	[
-		ValidateJWT,
-		check(["id", "currentPassword", "newPassword", "confirmPassword"]).trim(),
-		check("id", "Invalid ID").isUUID().custom(UserIdExist),
-		check(
-			["currentPassword", "newPassword", "confirmPassword"],
-			"All fields are required"
-		)
-			.not()
-			.isEmpty(),
-		check(
-			"newPassword",
-			"The new password must be 8 character minimum."
-		).isLength({
-			min: 8,
-		}),
-		ValidateFields,
-	],
-	ChangeUserPassword
 );
 
 UserRoutes.delete(

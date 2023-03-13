@@ -21,16 +21,16 @@ export class User extends BaseEntity {
 	@Column({ unique: true, nullable: false })
 	email: string;
 
-	@Column({ nullable: false })
+	@Column({ nullable: false, select: false })
 	password: string;
 
-	@Column({ default: true })
+	@Column({ default: true, select: false })
 	state: boolean;
 
 	@Column({ default: false })
 	isAdmin: boolean;
 
-	@CreateDateColumn()
+	@CreateDateColumn({update:false})
 	createdAt: Date;
 
 	@UpdateDateColumn()

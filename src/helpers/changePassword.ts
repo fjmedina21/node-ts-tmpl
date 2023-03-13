@@ -1,27 +1,32 @@
 import { User } from "../models";
 import { compareSync } from "bcryptjs";
 
-export async function ChangePassword(
+export async function UpadatePassword(
 	uId: string,
-	pR: string,
-	nP: string,
-	cP: string
+	current: string,
+	newPass: string,
+	confirmPass: string
 ) {
-	//pR:password registered, nP:new password, cP:confirm password
+	// check that current is correct
+	await CheckCurrent(uId, current);
+
+	// Check that current and new Pass are not the same
+	await CheckNewPass(current, newPass);
 	
-	await CheckCurrentPass(uId, pR);
-	await CheckNewPass(pR, nP);
-	await ConfirmPass(nP, cP);
+	// Check that new and confirm pass are the same
+	await ConfirmNewPass(newPass, confirmPass);
 }
 
-async function CheckCurrentPass(id: string, currentPassword: string) {
+async function CheckCurrent(id: string, currentPassword: string) {
 	try {
-		const user: User | null = await User.findOneBy({ uId: id });
+		const user: User | null = await User.findOne({
+			select: ["uId", "password"],
+			where: { uId: id },
+		});
 
 		if (user) {
 			const match = compareSync(currentPassword, user.password);
 			if (!match) {
-				// check that current and user.Pass are the same
 				return Promise.reject({
 					msg: "Invalid password",
 					field: "currentPassword",
@@ -36,7 +41,6 @@ async function CheckCurrentPass(id: string, currentPassword: string) {
 async function CheckNewPass(currentPass: string, newPass: string) {
 	try {
 		if (currentPass === newPass) {
-			// Check that current and new Pass are the same
 			return Promise.reject({
 				msg: "Current and New Password can't be the same",
 				fields: "currentPassword, newPassword",
@@ -47,10 +51,9 @@ async function CheckNewPass(currentPass: string, newPass: string) {
 	}
 }
 
-async function ConfirmPass(newPass: string, confirmPass: string) {
+async function ConfirmNewPass(newPass: string, confirmPass: string) {
 	try {
 		if (confirmPass !== newPass) {
-			// Check that new and confirm pass are the same
 			return Promise.reject({
 				msg: "These passwords don't match",
 				fields: "newPassword, confirmPass",

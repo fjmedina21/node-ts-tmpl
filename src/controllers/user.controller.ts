@@ -2,7 +2,6 @@ import { Response, Request } from "express";
 import { hashSync } from "bcryptjs";
 
 import { User, IUser } from "../models";
-import { ChangePassword } from "../helpers";
 
 export async function GetUsers(req: Request, res: Response) {
 	try {
@@ -51,27 +50,6 @@ export async function PatchUser(req: Request, res: Response) {
 		}
 
 		return res.status(200).json({ msg: "User Updated", user });
-	} catch (error: unknown) {
-		return res.status(400).json({ error });
-	}
-}
-
-export async function ChangeUserPassword(req: Request, res: Response) {
-	try {
-		const { id } = req.params;
-		const user: User | null = await User.findOneBy({ uId: id });
-		const { currentPassword, newPassword, confirmPassword } = req.body;
-
-		if (user) {
-			await ChangePassword(id, currentPassword, newPassword, confirmPassword);
-			user.password = hashSync(newPassword, 15);
-			await user.save();
-		}
-
-		return res.status(200).json({
-			msg: "User password updated",
-			pass: user?.password,
-		});
 	} catch (error: unknown) {
 		return res.status(400).json({ error });
 	}
