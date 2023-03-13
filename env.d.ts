@@ -4,9 +4,9 @@ declare global {
 		interface ProcessEnv {
 			JWT_SK: Secret;
 			JWT_EXPIRES_IN: string;
-			JWT_COOKIE_EXPIRES_IN: number;
+			JWT_COOKIE_EXPIRES_IN_DAY: string;
 			//--------------
-			SV_PORT: number;
+			DEV_PORT: number;
 			//--------------
 			DB_PORT: number;
 			DB_HOST: string;
@@ -15,6 +15,7 @@ declare global {
 			DB_NAME: string;
 			//--------------
 		}
+
 	}
 }
 

@@ -1,9 +1,9 @@
 import { Router } from "express";
 
-import { search } from "../controllers";
+import { Search } from "../controllers";
 
-const searchRoutes = Router();
+const SearchRoutes = Router();
 
-searchRoutes.get("/:term", search);
+SearchRoutes.get("/:term", Search);
 
-export { searchRoutes };
+export { SearchRoutes };

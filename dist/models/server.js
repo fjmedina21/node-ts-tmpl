@@ -20,8 +20,6 @@ class Server {
             search: "/search",
             users: "/users",
         };
-    }
-    contructor() {
         this.app = (0, express_1.default)();
         this.PORT = 3000;
         this.dbConnection();
@@ -35,21 +33,22 @@ class Server {
         this.app.use((0, helmet_1.default)());
         this.app.use(express_1.default.json());
         this.app.use(express_1.default.urlencoded());
-        //this.app.use(express.static(path.join(__dirname, "../public")));
+        //this.app.use(express.static(path.join(__dirname, "../../public")));
     }
     async dbConnection() {
         try {
             await db_config_1.AppDataSource.initialize();
         }
         catch (error) {
-            if (error instanceof Error)
-                console.error(error);
+            console.error("------------------------------------------------");
+            console.error(error);
+            console.error("------------------------------------------------");
         }
     }
     routes() {
-        this.app.use(this.path.auth, routes_1.authRoutes);
-        this.app.use(this.path.search, routes_1.searchRoutes);
-        this.app.use(this.path.users, routes_1.userRoutes);
+        this.app.use(this.path.auth, routes_1.AuthRoutes);
+        this.app.use(this.path.search, routes_1.SearchRoutes);
+        this.app.use(this.path.users, routes_1.UserRoutes);
     }
     listen() {
         this.app.listen(this.PORT, () => console.log(`listening on http://localhost:${this.PORT}`));

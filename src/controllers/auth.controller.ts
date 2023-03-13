@@ -1,67 +1,73 @@
 import "dotenv/config";
 
-import { Response, Request } from "express";
-import bcryptjs from "bcryptjs";
+import { Response, Request, CookieOptions } from "express";
+import { hashSync, compareSync } from "bcryptjs";
 
-import { User } from "../models";
-import { generateJWT } from "../helpers";
+import { User, IUser } from "../models";
+import { GenerateJWT } from "../helpers";
 
-function sendCookie(res: Response, token: unknown): void {
-	const cookieOptions: object = {
-		expires: Date() + (process.env.JWT_COOKIE_EXPIRES_IN * 24 * 3600 * 1000),
-		httpOnly: true,
-	};
+function SendCookie(res: Response, token: unknown) {
+	try {
+		const cookieOptions: CookieOptions = {
+			httpOnly: true,
+		};
 
-	res.cookie("jwt", token, cookieOptions);
+		return res.cookie("jwt", token, cookieOptions);
+	} catch (error: unknown) {
+		return;
+	}
 }
 
-export const login = async (req: Request, res: Response) => {
+export async function SignUp(req: Request, res: Response) {
 	try {
-		const { email, password } = req.body;
-
-		const user = await User.findOneBy({ email: email, state: true });
-		if (!user) {
-			return res.status(400).json({
-				msg: "please check your credentials and try again.",
-			});
-		}
-
-		const match = bcryptjs.compareSync(password, user.password);
-		if (!match) {
-			return res.status(400).json({
-				msg: "please check your credentials and try again.",
-			});
-		}
-
-		const token: unknown = await generateJWT(user.uId, user.isAdmin);
-		//sendCookie(res, token);
-
-		res.status(200).json({ user, token });
-	} catch (error: unknown) {
-		if (error instanceof Error) return res.status(400).json(error);
-	}
-};
-
-export async function signup(req: Request, res: Response) {
-	try {
-		const { firstName, lastName, email, password, isAdmin } = req.body;
+		const { firstName, lastName, email, password, isAdmin }: IUser = req.body;
 		const user: User = new User();
 
 		user.firstName = firstName;
 		user.lastName = lastName;
 		user.email = email;
-		user.isAdmin = isAdmin;
-
-		//Encriptar la contraseña
-		user.password = bcryptjs.hashSync(password, 15);
+		user.password = hashSync(password, 15);
+		user.isAdmin ??= isAdmin;
 
 		await user.save();
 
-		const token = await generateJWT(user.uId, user.isAdmin);
-		//sendCookie(res, token);
+		const token: unknown = await GenerateJWT(user.uId, user.isAdmin);
+		SendCookie(res, token);
 
 		return res.status(201).json({ user, token });
 	} catch (error: unknown) {
-		if (error instanceof Error) return res.status(400).json({ error });
+		return res.status(400).json({ error });
 	}
 }
+
+export const LogIn = async (req: Request, res: Response) => {
+	try {
+		const { email, password }: IUser = req.body;
+
+		const user: User | null = await User.findOneBy({
+			email: email,
+			state: true,
+		});
+
+		if (!user) {
+			return res.status(400).json({
+				msg: "That email account doesn't exist. Enter a different account or get a new one.",
+			});
+		}
+
+		const match = compareSync(password, user.password);
+
+		if (!match) {
+			return res.status(400).json({
+				msg: "Your account or password is incorrect",
+			});
+		}
+
+		const token: unknown = await GenerateJWT(user.uId, user.isAdmin);
+		SendCookie(res, token);
+		
+		res.status(200).json({ user, token });
+	} catch (error: unknown) {
+		return res.status(400).json({ error });
+	}
+};

@@ -1,10 +1,10 @@
 import {
 	BaseEntity,
-	Column,
 	Entity,
 	PrimaryGeneratedColumn,
+	Column,
 	CreateDateColumn,
-	UpdateDateColumn
+	UpdateDateColumn,
 } from "typeorm";
 
 @Entity()
@@ -18,10 +18,10 @@ export class User extends BaseEntity {
 	@Column()
 	lastName: string;
 
-	@Column({unique:true, nullable: false})
+	@Column({ unique: true, nullable: false })
 	email: string;
 
-	@Column({nullable:false})
+	@Column({ nullable: false })
 	password: string;
 
 	@Column({ default: true })
@@ -35,4 +35,13 @@ export class User extends BaseEntity {
 
 	@UpdateDateColumn()
 	updatedAt: Date;
+}
+
+export interface IUser {
+	firstName: string;
+	lastName: string;
+	email: string;
+	password: string;
+	isAdmin: boolean;
+	state: boolean;
 }

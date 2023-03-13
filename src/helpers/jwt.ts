@@ -1,17 +1,16 @@
-import "dotenv/config"
-
+import "dotenv/config";
 import jwt from "jsonwebtoken";
 
-export function generateJWT(uId: string, role:boolean): Promise<unknown> {
+export function GenerateJWT(uId: string, isAdmin: boolean): Promise<unknown> {
 	return new Promise((resolve, reject) => {
-		const payload: object = { uId, role };
+		const payload = { uId, isAdmin };
 
 		jwt.sign(
 			payload,
 			"process.env.JWT_SK",
 			{ expiresIn: process.env.JWT_EXPIRES_IN },
 			(error: unknown, token: string | undefined) => {
-				if (error instanceof Error) reject(error);
+				if (error) reject(error);
 				else resolve(token);
 			}
 		);

@@ -8,7 +8,7 @@ import helmet from "helmet";
 //import path from "path";
 
 import { AppDataSource } from "../config/db.config";
-import { userRoutes, authRoutes, searchRoutes } from "../routes";
+import { UserRoutes, AuthRoutes, SearchRoutes } from "../routes";
 
 export class Server {
 	private app: Express;
@@ -35,21 +35,23 @@ export class Server {
 		this.app.use(helmet());
 		this.app.use(express.json());
 		this.app.use(express.urlencoded());
-		//this.app.use(express.static(path.join(__dirname, "../public")));
+		//this.app.use(express.static(path.join(__dirname, "../../public")));
 	}
 
 	private async dbConnection(): Promise<void> {
 		try {
 			await AppDataSource.initialize();
 		} catch (error: unknown) {
-			if (error instanceof Error) console.error(error);
+			console.error("------------------------------------------------");
+			console.error(error);
+			console.error("------------------------------------------------");
 		}
 	}
 
 	private routes(): void {
-		this.app.use(this.path.auth, authRoutes);
-		this.app.use(this.path.search, searchRoutes);
-		this.app.use(this.path.users, userRoutes);
+		this.app.use(this.path.auth, AuthRoutes);
+		this.app.use(this.path.search, SearchRoutes);
+		this.app.use(this.path.users, UserRoutes);
 	}
 
 	private listen(): void {

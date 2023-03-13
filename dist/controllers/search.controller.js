@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.search = void 0;
+exports.Search = void 0;
 const typeorm_1 = require("typeorm");
 const models_1 = require("../models/");
-async function search(req, res) {
+async function Search(req, res) {
     try {
         const { term } = req.params;
-        const isUUID = false;
+        const isUUID = false; // TODO: validate if term is UUID
         if (isUUID) {
             const user = await models_1.User.findOneBy({
                 uId: term,
@@ -19,8 +19,8 @@ async function search(req, res) {
         else if (!isUUID) {
             const user = await models_1.User.findAndCount({
                 where: [
-                    { firstName: (0, typeorm_1.Like)(`%${term}%`) },
-                    { lastName: (0, typeorm_1.Like)(`%${term}%`) }
+                    { state: true, firstName: (0, typeorm_1.Like)(`%${term}%`) },
+                    { state: true, lastName: (0, typeorm_1.Like)(`%${term}%`) },
                 ],
             });
             return res.status(200).json({
@@ -30,8 +30,7 @@ async function search(req, res) {
         }
     }
     catch (error) {
-        if (error instanceof Error)
-            return res.status(400).json({ error });
+        return res.status(400).json({ error });
     }
 }
-exports.search = search;
+exports.Search = Search;

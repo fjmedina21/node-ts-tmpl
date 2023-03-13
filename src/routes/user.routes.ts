@@ -1,51 +1,75 @@
 import { Router } from "express";
 import { check } from "express-validator";
 
-import { usersGet, userGetById, userPut, userDelete } from "../controllers";
+import {
+	GetUser,
+	GetUsers,
+	PatchUser,
+	DeleteUser,
+	ChangeUserPassword,
+} from "../controllers";
 
-import { userIdExist, emailExist } from "../helpers";
-import { validateFields, validateJWT, isAdmin } from "../middlewares";
+import { UserIdExist } from "../helpers";
+import { ValidateFields, IsAdmin, ValidateJWT } from "../middlewares";
 
-const userRoutes = Router();
+const UserRoutes = Router();
 
-userRoutes.get("/", [isAdmin, validateJWT], usersGet);
+UserRoutes.get("/", [IsAdmin, ValidateFields], GetUsers);
 
-userRoutes.get(
+UserRoutes.get(
 	"/:id",
 	[
-		isAdmin,
-		validateJWT,
-		check("id", "Invalid ID").isUUID(),
-		check("id").custom(userIdExist),
-		validateFields,
+		IsAdmin,
+		ValidateJWT,
+		check("id", "Invalid ID").isUUID().custom(UserIdExist),
+		ValidateFields,
 	],
-	userGetById
+	GetUser
 );
 
-userRoutes.put(
+UserRoutes.patch(
 	"/:id",
 	[
-		validateJWT,
+		ValidateJWT,
 		check(["id", "firstName", "lastName", "email", "password"]).trim(),
-		check("id", "Invalid ID").isUUID(),
-		check("id").custom(userIdExist),
-		check("email", "Invalid email").isEmail(),
-		check("email").custom(emailExist),
-		validateFields,
+		check("id", "Invalid ID").isUUID().custom(UserIdExist),
+		ValidateFields,
 	],
-	userPut
+	PatchUser
 );
 
-userRoutes.delete(
+UserRoutes.patch(
+	"/password/:id",
+	[
+		ValidateJWT,
+		check(["id", "currentPassword", "newPassword", "confirmPassword"]).trim(),
+		check("id", "Invalid ID").isUUID().custom(UserIdExist),
+		check(
+			["currentPassword", "newPassword", "confirmPassword"],
+			"All fields are required"
+		)
+			.not()
+			.isEmpty(),
+		check(
+			"newPassword",
+			"The new password must be 8 character minimum."
+		).isLength({
+			min: 8,
+		}),
+		ValidateFields,
+	],
+	ChangeUserPassword
+);
+
+UserRoutes.delete(
 	"/:id",
 	[
-		isAdmin,
-		validateJWT,
-		check("id", "Invalid ID").isUUID(),
-		check("id").custom(userIdExist),
-		validateFields,
+		IsAdmin,
+		ValidateJWT,
+		check("id", "Invalid ID").isUUID().custom(UserIdExist),
+		ValidateFields,
 	],
-	userDelete
+	DeleteUser
 );
 
-export { userRoutes };
+export { UserRoutes };

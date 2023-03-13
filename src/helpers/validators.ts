@@ -1,7 +1,6 @@
 import { User } from "../models";
-//import { CustomValidator } from 'express-validator';
 
-export async function emailExist(email: string) {
+export async function EmailExist(email: string) {
 	try {
 		const exist: User | null = await User.findOneBy({ email: email });
 
@@ -11,11 +10,11 @@ export async function emailExist(email: string) {
 			);
 		}
 	} catch (error: unknown) {
-		return Promise.reject(error);
+		//return Promise.reject(error);
 	}
 }
 
-export function isEmail(email: string) {
+export function IsEmail(email: string) {
 	try {
 		const emailRegex: RegExp = /^[\w-\.]+@([\w-]+\\.)+[\w-]{2,4}$/;
 
@@ -25,11 +24,11 @@ export function isEmail(email: string) {
 			return Promise.reject("Invalid email");
 		}
 	} catch (error: unknown) {
-		return Promise.reject(error);
+		//return Promise.reject(error);
 	}
 }
 
-export async function userIdExist(id: string) {
+export async function UserIdExist(id: string) {
 	try {
 		const exist: User | null = await User.findOneBy({ uId: id, state: true });
 
@@ -37,6 +36,6 @@ export async function userIdExist(id: string) {
 			return Promise.reject("User not found");
 		}
 	} catch (error: unknown) {
-		return Promise.reject(error);
+		//return Promise.reject(error);
 	}
 }
