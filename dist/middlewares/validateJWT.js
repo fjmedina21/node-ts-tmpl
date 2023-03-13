@@ -19,7 +19,7 @@ async function validateJWT(req, res, next) {
             state: true,
         });
         if (!user) {
-            return res.status(404).json({ msg: "user not found!" });
+            return res.status(404).json({ message: "user not found!" });
         }
         next();
     }

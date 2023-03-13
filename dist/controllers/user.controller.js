@@ -1,9 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeleteUser = exports.ChangeUserPassword = exports.PatchUser = exports.GetUser = exports.GetUsers = void 0;
-const bcryptjs_1 = require("bcryptjs");
+exports.DeleteUser = exports.PatchUser = exports.GetUser = exports.GetUsers = void 0;
 const models_1 = require("../models");
-const helpers_1 = require("../helpers");
 async function GetUsers(req, res) {
     try {
         const users = (await models_1.User.findAndCount({
@@ -16,7 +14,7 @@ async function GetUsers(req, res) {
         });
     }
     catch (error) {
-        return res.status(400).json(error);
+        return res.status(400).json({ error });
     }
 }
 exports.GetUsers = GetUsers;
@@ -45,33 +43,13 @@ async function PatchUser(req, res) {
             user.email = email ? email : user.email;
             await user.save();
         }
-        return res.status(200).json({ msg: "User Updated", user });
+        return res.status(200).json({ message: "User Updated", user });
     }
     catch (error) {
         return res.status(400).json({ error });
     }
 }
 exports.PatchUser = PatchUser;
-async function ChangeUserPassword(req, res) {
-    try {
-        const { id } = req.params;
-        const user = await models_1.User.findOneBy({ uId: id });
-        const { currentPassword, newPassword, confirmPassword } = req.body;
-        if (user) {
-            await (0, helpers_1.ChangePassword)(id, currentPassword, newPassword, confirmPassword);
-            user.password = (0, bcryptjs_1.hashSync)(newPassword, 15);
-            await user.save();
-        }
-        return res.status(200).json({
-            msg: "User password updated",
-            pass: user?.password,
-        });
-    }
-    catch (error) {
-        return res.status(400).json({ error });
-    }
-}
-exports.ChangeUserPassword = ChangeUserPassword;
 async function DeleteUser(req, res) {
     try {
         const { id } = req.params;

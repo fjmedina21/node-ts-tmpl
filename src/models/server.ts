@@ -7,7 +7,8 @@ import morgan from "morgan";
 import helmet from "helmet";
 //import path from "path";
 
-import { AppDataSource } from "../config/db.config";
+import { AppDataSource } from "../config/orm.config";
+import { config } from "../config/index";
 import { UserRoutes, AuthRoutes, SearchRoutes } from "../routes";
 
 export class Server {
@@ -21,7 +22,8 @@ export class Server {
 
 	constructor() {
 		this.app = express();
-		this.PORT = 3000;
+		console.log(typeof process.env.DEV_PORT);
+		this.PORT = config.DEV_PORT || 3000;
 
 		this.dbConnection();
 		this.middlewares();
@@ -35,7 +37,7 @@ export class Server {
 		this.app.use(helmet());
 		this.app.use(express.json());
 		this.app.use(express.urlencoded());
-		//this.app.use(express.static(path.join(__dirname, "../../public")));
+		//this.app.use(express.static(path.join(__dirname, "../public")));
 	}
 
 	private async dbConnection(): Promise<void> {

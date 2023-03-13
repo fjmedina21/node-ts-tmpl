@@ -1,3 +1,5 @@
+import bcrypt from "bcryptjs";
+
 import {
 	BaseEntity,
 	Entity,
@@ -30,11 +32,20 @@ export class User extends BaseEntity {
 	@Column({ default: false })
 	isAdmin: boolean;
 
-	@CreateDateColumn({update:false})
+	@CreateDateColumn({ update: false })
 	createdAt: Date;
 
 	@UpdateDateColumn()
 	updatedAt: Date;
+
+	hashPassword(password: string): void {
+		const salt = bcrypt.genSaltSync(15);
+		this.password = bcrypt.hashSync(password, salt);
+	}
+
+	comparePassword(password: string): boolean {
+		return bcrypt.compareSync(password, this.password);
+	}
 }
 
 export interface IUser {

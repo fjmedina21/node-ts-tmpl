@@ -1,5 +1,10 @@
 import { User } from "../models";
-import { compareSync } from "bcryptjs";
+
+export interface IPassword {
+	currentPassword: string;
+	newPassword: string;
+	confirmPassword: string;
+}
 
 export async function UpadatePassword(
 	uId: string,
@@ -12,23 +17,23 @@ export async function UpadatePassword(
 
 	// Check that current and new Pass are not the same
 	await CheckNewPass(current, newPass);
-	
+
 	// Check that new and confirm pass are the same
 	await ConfirmNewPass(newPass, confirmPass);
 }
 
-async function CheckCurrent(id: string, currentPassword: string) {
+async function CheckCurrent(uId: string, currentPassword: string) {
 	try {
 		const user: User | null = await User.findOne({
 			select: ["uId", "password"],
-			where: { uId: id },
+			where: { uId },
 		});
 
 		if (user) {
-			const match = compareSync(currentPassword, user.password);
+			const match = user.comparePassword(currentPassword);
 			if (!match) {
 				return Promise.reject({
-					msg: "Invalid password",
+					message: "Invalid password",
 					field: "currentPassword",
 				});
 			}
@@ -42,7 +47,7 @@ async function CheckNewPass(currentPass: string, newPass: string) {
 	try {
 		if (currentPass === newPass) {
 			return Promise.reject({
-				msg: "Current and New Password can't be the same",
+				message: "Current and New Password can't be the same",
 				fields: "currentPassword, newPassword",
 			});
 		}
@@ -55,7 +60,7 @@ async function ConfirmNewPass(newPass: string, confirmPass: string) {
 	try {
 		if (confirmPass !== newPass) {
 			return Promise.reject({
-				msg: "These passwords don't match",
+				message: "These passwords don't match",
 				fields: "newPassword, confirmPass",
 			});
 		}

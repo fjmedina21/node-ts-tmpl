@@ -11,7 +11,8 @@ const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
 const helmet_1 = __importDefault(require("helmet"));
 //import path from "path";
-const db_config_1 = require("../config/db.config");
+const orm_config_1 = require("../config/orm.config");
+const index_1 = require("../config/index");
 const routes_1 = require("../routes");
 class Server {
     constructor() {
@@ -21,7 +22,8 @@ class Server {
             users: "/users",
         };
         this.app = (0, express_1.default)();
-        this.PORT = 3000;
+        console.log(typeof process.env.DEV_PORT);
+        this.PORT = index_1.config.DEV_PORT || 3000;
         this.dbConnection();
         this.middlewares();
         this.routes();
@@ -33,11 +35,11 @@ class Server {
         this.app.use((0, helmet_1.default)());
         this.app.use(express_1.default.json());
         this.app.use(express_1.default.urlencoded());
-        //this.app.use(express.static(path.join(__dirname, "../../public")));
+        //this.app.use(express.static(path.join(__dirname, "../public")));
     }
     async dbConnection() {
         try {
-            await db_config_1.AppDataSource.initialize();
+            await orm_config_1.AppDataSource.initialize();
         }
         catch (error) {
             console.error("------------------------------------------------");

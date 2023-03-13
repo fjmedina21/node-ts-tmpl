@@ -6,12 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IsAdmin = exports.ValidateJWT = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const models_1 = require("../models");
+const index_1 = require("../config/index");
 async function ValidateJWT(req, res, next) {
     try {
         const token = req.header("x-token");
         if (!token)
             return res.status(401).json({ mgs: "Token is mising" });
-        const payload = jsonwebtoken_1.default.verify(token, "process.env.JWT_SK");
+        const payload = jsonwebtoken_1.default.verify(token, index_1.config.JWT_SECRECT);
         const { uId } = payload;
         //Check if logged user is active
         const user = await models_1.User.findOneBy({
@@ -19,7 +20,7 @@ async function ValidateJWT(req, res, next) {
             state: true,
         });
         if (!user) {
-            return res.status(404).json({ msg: "Invalid token" });
+            return res.status(404).json({ message: "Invalid token" });
         }
         next();
     }
@@ -34,10 +35,10 @@ async function IsAdmin(req, res, next) {
         if (!token) {
             return res.status(401).json({ mgs: "Token is mising" });
         }
-        const payload = jsonwebtoken_1.default.verify(token, "process.env.JWT_SK");
+        const payload = jsonwebtoken_1.default.verify(token, index_1.config.JWT_SECRECT);
         const { isAdmin } = payload;
         if (!isAdmin) {
-            return res.status(403).json({ msg: "action not allowed" });
+            return res.status(403).json({ message: "action not allowed" });
         }
         next();
     }

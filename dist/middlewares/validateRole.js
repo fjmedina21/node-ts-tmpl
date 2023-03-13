@@ -13,7 +13,7 @@ async function isAdmin(req, res, next) {
         const payload = jsonwebtoken_1.default.verify(token, "secrect-key");
         const { role } = payload;
         if (!role) {
-            return res.status(403).json({ msg: "action not allowed" });
+            return res.status(403).json({ message: "action not allowed" });
         }
         next();
     }

@@ -16,7 +16,7 @@ export async function GetUsers(req: Request, res: Response) {
 			users: users[0],
 		});
 	} catch (error: unknown) {
-		return res.status(400).json(error);
+		return res.status(400).json({ error });
 	}
 }
 
@@ -49,7 +49,7 @@ export async function PatchUser(req: Request, res: Response) {
 			await user.save();
 		}
 
-		return res.status(200).json({ msg: "User Updated", user });
+		return res.status(200).json({ message: "User Updated", user });
 	} catch (error: unknown) {
 		return res.status(400).json({ error });
 	}

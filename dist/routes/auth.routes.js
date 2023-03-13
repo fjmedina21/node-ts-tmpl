@@ -26,3 +26,15 @@ AuthRoutes.post("/signup", [
     }),
     middlewares_1.ValidateFields,
 ], controllers_1.SignUp);
+AuthRoutes.patch("/change-password/:id", [
+    middlewares_1.ValidateJWT,
+    (0, express_validator_1.check)(["id", "currentPassword", "newPassword", "confirmPassword"]).trim(),
+    (0, express_validator_1.check)("id", "Invalid ID").isUUID().custom(helpers_1.UserIdExist),
+    (0, express_validator_1.check)(["currentPassword", "newPassword", "confirmPassword"], "All fields are required")
+        .not()
+        .isEmpty(),
+    (0, express_validator_1.check)("newPassword", "The new password must be 8 character minimum.").isLength({
+        min: 8,
+    }),
+    middlewares_1.ValidateFields,
+], controllers_1.ChangePassword);

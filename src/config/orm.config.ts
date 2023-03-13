@@ -2,14 +2,15 @@ import "dotenv/config";
 
 import { DataSource } from "typeorm";
 import { User } from "../models";
+import { config } from "./index";
 
 export const AppDataSource = new DataSource({
 	type: "mysql",
-	host: process.env.DB_HOST,
-	port: 3307,
-	username: process.env.DB_USER,
-	password: process.env.DB_PASS,
-	database: process.env.DB_NAME,
+	host: config.DB_HOST,
+	port: config.DB_PORT,
+	username: config.DB_USER,
+	password: config.DB_PASS,
+	database: config.DB_NAME,
 	entities: [User],
 	synchronize: true,
 });

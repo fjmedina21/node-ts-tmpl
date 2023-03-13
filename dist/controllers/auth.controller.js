@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LogIn = exports.SignUp = void 0;
+exports.ChangePassword = exports.LogIn = exports.SignUp = void 0;
 require("dotenv/config");
-const bcryptjs_1 = require("bcryptjs");
 const models_1 = require("../models");
 const helpers_1 = require("../helpers");
 function SendCookie(res, token) {
@@ -23,8 +22,8 @@ async function SignUp(req, res) {
         user.firstName = firstName;
         user.lastName = lastName;
         user.email = email;
-        user.password = (0, bcryptjs_1.hashSync)(password, 15);
-        user.isAdmin ?? (user.isAdmin = isAdmin);
+        user.hashPassword(password);
+        user.isAdmin = isAdmin;
         await user.save();
         const token = await (0, helpers_1.GenerateJWT)(user.uId, user.isAdmin);
         SendCookie(res, token);
@@ -38,19 +37,28 @@ exports.SignUp = SignUp;
 const LogIn = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await models_1.User.findOneBy({
-            email: email,
-            state: true,
+        const user = await models_1.User.findOne({
+            select: [
+                "uId",
+                "firstName",
+                "lastName",
+                "email",
+                "password",
+                "isAdmin",
+                "createdAt",
+                "updatedAt",
+            ],
+            where: { email },
         });
         if (!user) {
             return res.status(400).json({
-                msg: "That email account doesn't exist. Enter a different account or get a new one.",
+                message: "That email account doesn't exist. Enter a different account or get a new one."
             });
         }
-        const match = (0, bcryptjs_1.compareSync)(password, user.password);
+        const match = user.comparePassword(password);
         if (!match) {
             return res.status(400).json({
-                msg: "Your account or password is incorrect",
+                message: "Your account or password is incorrect",
             });
         }
         const token = await (0, helpers_1.GenerateJWT)(user.uId, user.isAdmin);
@@ -62,3 +70,22 @@ const LogIn = async (req, res) => {
     }
 };
 exports.LogIn = LogIn;
+async function ChangePassword(req, res) {
+    try {
+        const { id } = req.params;
+        const user = await models_1.User.findOneBy({ uId: id });
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+        if (user) {
+            await (0, helpers_1.UpadatePassword)(id, currentPassword, newPassword, confirmPassword);
+            user.hashPassword(newPassword);
+            await user.save();
+        }
+        return res.status(200).json({
+            message: "User password updated",
+        });
+    }
+    catch (error) {
+        return res.status(400).json({ error });
+    }
+}
+exports.ChangePassword = ChangePassword;

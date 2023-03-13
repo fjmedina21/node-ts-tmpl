@@ -1,22 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChangePassword = void 0;
+exports.UpadatePassword = void 0;
 const models_1 = require("../models");
-const bcryptjs_1 = require("bcryptjs");
-async function ChangePassword(uId, pR, nP, cP) {
-    //pR:password registered, nP:new password, cP:confirm password
-    await CheckCurrentPass(uId, pR);
-    await CheckNewPass(pR, nP);
-    await ConfirmPass(nP, cP);
+async function UpadatePassword(uId, current, newPass, confirmPass) {
+    // check that current is correct
+    await CheckCurrent(uId, current);
+    // Check that current and new Pass are not the same
+    await CheckNewPass(current, newPass);
+    // Check that new and confirm pass are the same
+    await ConfirmNewPass(newPass, confirmPass);
 }
-exports.ChangePassword = ChangePassword;
-async function CheckCurrentPass(id, currentPassword) {
+exports.UpadatePassword = UpadatePassword;
+async function CheckCurrent(uId, currentPassword) {
     try {
-        const user = await models_1.User.findOneBy({ uId: id });
+        const user = await models_1.User.findOne({
+            select: ["uId", "password"],
+            where: { uId },
+        });
         if (user) {
-            const match = (0, bcryptjs_1.compareSync)(currentPassword, user.password);
+            const match = user.comparePassword(currentPassword);
             if (!match) {
-                // check that current and user.Pass are the same
                 return Promise.reject({
                     message: "Invalid password",
                     field: "currentPassword",
@@ -31,7 +34,6 @@ async function CheckCurrentPass(id, currentPassword) {
 async function CheckNewPass(currentPass, newPass) {
     try {
         if (currentPass === newPass) {
-            // Check that current and new Pass are the same
             return Promise.reject({
                 message: "Current and New Password can't be the same",
                 fields: "currentPassword, newPassword",
@@ -42,10 +44,9 @@ async function CheckNewPass(currentPass, newPass) {
         return error;
     }
 }
-async function ConfirmPass(newPass, confirmPass) {
+async function ConfirmNewPass(newPass, confirmPass) {
     try {
         if (confirmPass !== newPass) {
-            // Check that new and confirm pass are the same
             return Promise.reject({
                 message: "These passwords don't match",
                 fields: "newPassword, confirmPass",

@@ -8,10 +8,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const typeorm_1 = require("typeorm");
 let User = class User extends typeorm_1.BaseEntity {
+    hashPassword(password) {
+        const salt = bcryptjs_1.default.genSaltSync(15);
+        this.password = bcryptjs_1.default.hashSync(password, salt);
+    }
+    comparePassword(password) {
+        return bcryptjs_1.default.compareSync(password, this.password);
+    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)("uuid"),
@@ -30,11 +41,11 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: false }),
+    (0, typeorm_1.Column)({ nullable: false, select: false }),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: true }),
+    (0, typeorm_1.Column)({ default: true, select: false }),
     __metadata("design:type", Boolean)
 ], User.prototype, "state", void 0);
 __decorate([
@@ -42,7 +53,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], User.prototype, "isAdmin", void 0);
 __decorate([
-    (0, typeorm_1.CreateDateColumn)(),
+    (0, typeorm_1.CreateDateColumn)({ update: false }),
     __metadata("design:type", Date)
 ], User.prototype, "createdAt", void 0);
 __decorate([

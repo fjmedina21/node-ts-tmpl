@@ -1,10 +1,9 @@
 import "dotenv/config";
 
 import { Response, Request, CookieOptions } from "express";
-import { hashSync, compareSync } from "bcryptjs";
 
 import { User, IUser } from "../models";
-import { GenerateJWT, UpadatePassword } from "../helpers";
+import { GenerateJWT, UpadatePassword, IPassword } from "../helpers";
 
 function SendCookie(res: Response, token: unknown) {
 	try {
@@ -26,8 +25,8 @@ export async function SignUp(req: Request, res: Response) {
 		user.firstName = firstName;
 		user.lastName = lastName;
 		user.email = email;
-		user.password = hashSync(password, 15);
-		user.isAdmin ??= isAdmin;
+		user.hashPassword(password);
+		user.isAdmin = isAdmin;
 
 		await user.save();
 
@@ -55,20 +54,21 @@ export const LogIn = async (req: Request, res: Response) => {
 				"createdAt",
 				"updatedAt",
 			],
-			where: { email: email },
+			where: { email },
 		});
 
 		if (!user) {
 			return res.status(400).json({
-				msg: "That email account doesn't exist. Enter a different account or get a new one.",
+				message:
+					"That email account doesn't exist. Enter a different account or get a new one."
 			});
 		}
 
-		const match = compareSync(password, user.password);
+		const match: boolean = user.comparePassword(password);
 
 		if (!match) {
 			return res.status(400).json({
-				msg: "Your account or password is incorrect",
+				message: "Your account or password is incorrect",
 			});
 		}
 
@@ -85,16 +85,17 @@ export async function ChangePassword(req: Request, res: Response) {
 	try {
 		const { id } = req.params;
 		const user: User | null = await User.findOneBy({ uId: id });
-		const { currentPassword, newPassword, confirmPassword } = req.body;
+		const { currentPassword, newPassword, confirmPassword }: IPassword =
+			req.body;
 
 		if (user) {
 			await UpadatePassword(id, currentPassword, newPassword, confirmPassword);
-			user.password = hashSync(newPassword, 15);
+			user.hashPassword(newPassword);
 			await user.save();
 		}
 
 		return res.status(200).json({
-			msg: "User password updated"
+			message: "User password updated",
 		});
 	} catch (error: unknown) {
 		return res.status(400).json({ error });
