@@ -1,24 +1,24 @@
 import { Router } from "express";
 import { check } from "express-validator";
 
-import {
-	GetUser,
-	GetUsers,
-	PatchUser,
-	DeleteUser,
-} from "../controllers";
+import { GetUser, GetUsers, PatchUser, DeleteUser } from "../controllers";
 
 import { UserIdExist } from "../helpers";
-import { ValidateFields, IsAdmin, ValidateJWT } from "../middlewares";
+import {
+	IsAdmin,
+	IsUserAdmin,
+	ValidateJWT,
+	ValidateFields,
+} from "../middlewares";
 
 const UserRoutes = Router();
 
-UserRoutes.get("/", [IsAdmin, ValidateFields], GetUsers);
+UserRoutes.get("/", [ValidateJWT, ValidateFields], GetUsers);
 
 UserRoutes.get(
 	"/:id",
 	[
-		IsAdmin,
+		//IsAdmin,
 		ValidateJWT,
 		check("id", "Invalid ID").isUUID().custom(UserIdExist),
 		ValidateFields,
@@ -29,6 +29,7 @@ UserRoutes.get(
 UserRoutes.patch(
 	"/:id",
 	[
+		IsUserAdmin,
 		ValidateJWT,
 		check(["id", "firstName", "lastName", "email", "password"]).trim(),
 		check("id", "Invalid ID").isUUID().custom(UserIdExist),
@@ -40,7 +41,7 @@ UserRoutes.patch(
 UserRoutes.delete(
 	"/:id",
 	[
-		IsAdmin,
+		IsUserAdmin,
 		ValidateJWT,
 		check("id", "Invalid ID").isUUID().custom(UserIdExist),
 		ValidateFields,

@@ -1,35 +1,53 @@
 import { Response, Request } from "express";
-import { hashSync } from "bcryptjs";
 
 import { User, IUser } from "../models";
 
 export async function GetUsers(req: Request, res: Response) {
 	try {
-		const users =
+		const users: [User[], number] =
 			(await User.findAndCount({
 				where: { state: true },
 				order: { updatedAt: "DESC", createdAt: "DESC" },
 			})) || [];
 
 		return res.status(200).json({
-			total: users[1],
-			users: users[0],
+			result: {
+				ok: true,
+				total: users[1],
+				users: users[0],
+			},
 		});
 	} catch (error: unknown) {
-		return res.status(400).json({ error });
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: error.name,
+				message: error.message,
+			};
+		return res.status(500).json({ error });
 	}
 }
 
 export async function GetUser(req: Request, res: Response) {
 	try {
 		const { id } = req.params;
-		const user: {} = (await User.findOneBy({ uId: id, state: true })) || {};
+		const user: User =
+			(await User.findOneByOrFail({ uId: id, state: true })) || {};
 
-		if (!user) return res.status(404).json({ message: "User not found" });
-
-		return res.status(200).json({ user });
+		return res.status(200).json({
+			result: {
+				ok: true,
+				user,
+			},
+		});
 	} catch (error: unknown) {
-		return res.status(400).json({ error });
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: error.name,
+				message: error.message,
+			};
+		return res.status(500).json({ error });
 	}
 }
 
@@ -39,19 +57,24 @@ export async function PatchUser(req: Request, res: Response) {
 		const { id } = req.params;
 		const { firstName, lastName, email }: IUser = req.body;
 
-		const user: User | null = await User.findOneBy({ uId: id });
+		const user: User = await User.findOneByOrFail({ uId: id });
 
-		if (user) {
-			user.firstName = firstName ? firstName : user.firstName;
-			user.lastName = lastName ? lastName : user.lastName;
-			user.email = email ? email : user.email;
+		user.firstName = firstName ? firstName : user.firstName;
+		user.lastName = lastName ? lastName : user.lastName;
+		user.email = email ? email : user.email;
+		await user.save();
 
-			await user.save();
-		}
-
-		return res.status(200).json({ message: "User Updated", user });
+		return res
+			.status(200)
+			.json({ result: { ok: true, message: "User updated" } });
 	} catch (error: unknown) {
-		return res.status(400).json({ error });
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: error.name,
+				message: error.message,
+			};
+		return res.status(500).json({ error });
 	}
 }
 
@@ -61,10 +84,19 @@ export async function DeleteUser(req: Request, res: Response) {
 		const { state }: IUser = req.body;
 
 		// set state = false but not delete user from db
-		await User.update({ uId: id }, { state: state });
+		await User.update(
+			{ uId: id },
+			{ state: state, isUser: false, isAdmin: false }
+		);
 
 		return res.status(204).json();
 	} catch (error: unknown) {
-		return res.status(400).json({ error });
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: error.name,
+				message: error.message,
+			};
+		return res.status(500).json({ error });
 	}
 }

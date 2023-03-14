@@ -22,8 +22,7 @@ export class Server {
 
 	constructor() {
 		this.app = express();
-		console.log(typeof process.env.DEV_PORT);
-		this.PORT = config.DEV_PORT || 3000;
+		this.PORT = config.DEV || 3000;
 
 		this.dbConnection();
 		this.middlewares();
@@ -33,11 +32,11 @@ export class Server {
 
 	private middlewares(): void {
 		this.app.use(cors());
-		this.app.use(morgan("dev"));
 		this.app.use(helmet());
 		this.app.use(express.json());
 		this.app.use(express.urlencoded());
 		//this.app.use(express.static(path.join(__dirname, "../public")));
+		this.app.use(morgan("dev"));
 	}
 
 	private async dbConnection(): Promise<void> {

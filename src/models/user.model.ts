@@ -20,23 +20,29 @@ export class User extends BaseEntity {
 	@Column()
 	lastName: string;
 
-	@Column({ unique: true, nullable: false })
+	@Column({ unique: true })
 	email: string;
 
-	@Column({ nullable: false, select: false })
+	@Column({ select: false })
 	password: string;
 
 	@Column({ default: true, select: false })
 	state: boolean;
 
-	@Column({ default: false })
+	@Column({ default: false, select: false })
 	isAdmin: boolean;
+
+	@Column({ default: true, select: false })
+	isUser: boolean;
 
 	@CreateDateColumn({ update: false })
 	createdAt: Date;
 
 	@UpdateDateColumn()
 	updatedAt: Date;
+
+	@Column({ nullable: true, select: false })
+	resetToken: string;
 
 	hashPassword(password: string): void {
 		const salt = bcrypt.genSaltSync(15);
@@ -54,5 +60,6 @@ export interface IUser {
 	email: string;
 	password: string;
 	isAdmin: boolean;
+	isUser: boolean;
 	state: boolean;
 }

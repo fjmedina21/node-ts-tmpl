@@ -1,5 +1,6 @@
 import { Response, Request } from "express";
 import { Like } from "typeorm";
+
 import { User } from "../models/";
 
 export async function Search(req: Request, res: Response) {
@@ -9,15 +10,15 @@ export async function Search(req: Request, res: Response) {
 		const isUUID: boolean = false; // TODO: validate if term is UUID
 
 		if (isUUID) {
-			const user: User | null = await User.findOneBy({
+			const user: User = await User.findOneByOrFail({
 				uId: term,
 				state: true,
 			});
 			return res.status(200).json({
-				results: user ? [user] : [],
+				result: user ? [user] : [],
 			});
 		} else if (!isUUID) {
-			const user = await User.findAndCount({
+			const user: [User[], number] = await User.findAndCount({
 				where: [
 					{ state: true, firstName: Like(`%${term}%`) },
 					{ state: true, lastName: Like(`%${term}%`) },
@@ -30,6 +31,12 @@ export async function Search(req: Request, res: Response) {
 			});
 		}
 	} catch (error: unknown) {
-		return res.status(400).json({ error });
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: error.name,
+				message: error.message,
+			};
+		return res.status(500).json({ error });
 	}
 }

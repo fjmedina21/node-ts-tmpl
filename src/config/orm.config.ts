@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import { DataSource } from "typeorm";
 import { User } from "../models";
 import { config } from "./index";

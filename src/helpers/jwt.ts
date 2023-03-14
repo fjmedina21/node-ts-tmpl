@@ -1,16 +1,24 @@
-import "dotenv/config";
-import jwt from "jsonwebtoken";
+import { Request } from "express";
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
 import { config } from "../config/index";
+import { IUser, User } from "../models/user.model";
 
-export function GenerateJWT(uId: string, isAdmin: boolean): Promise<unknown> {
+export function GenerateJWT(
+	uId: string,
+	{ isAdmin, isUser }: IUser
+): Promise<unknown> {
 	return new Promise((resolve, reject) => {
-		const payload = { uId, isAdmin };
+		const payload = { uId, isAdmin, isUser };
+
+		const options: SignOptions = {
+			expiresIn: config.JWT_SESSION_EXPIRES_IN,
+		};
 
 		jwt.sign(
 			payload,
 			config.JWT_SECRECT,
-			{ expiresIn: config.JWT_EXPIRES_IN },
+			options,
 			(error: unknown, token: string | undefined) => {
 				if (error) reject(error);
 				else resolve(token);
@@ -19,16 +27,18 @@ export function GenerateJWT(uId: string, isAdmin: boolean): Promise<unknown> {
 	});
 }
 
-// TODO: implementar UpdatedJWT
-/*
-export function UpdateJWT(uId: string, isAdmin: boolean): Promise<unknown> {
+export function GenerateResetJWT(email: string): Promise<unknown> {
 	return new Promise((resolve, reject) => {
-		const payload = { uId, isAdmin };
+		const payload = { email };
+
+		const options: SignOptions = {
+			expiresIn: config.JWT_RESET_TOKEN_EXPIRES_IN,
+		};
 
 		jwt.sign(
 			payload,
-			"process.env.JWT_SK",
-			{ expiresIn: process.env.JWT_EXPIRES_IN },
+			config.JWT_RESET_TOKEN_SECRECT,
+			options,
 			(error: unknown, token: string | undefined) => {
 				if (error) reject(error);
 				else resolve(token);
@@ -36,4 +46,23 @@ export function UpdateJWT(uId: string, isAdmin: boolean): Promise<unknown> {
 		);
 	});
 }
-*/
+
+export async function ValidateResetJWT(resetToken: string): Promise<User> {
+	const { email } = jwt.verify(
+		resetToken,
+		config.JWT_RESET_TOKEN_SECRECT
+	) as JwtPayload;
+
+	return await User.findOneOrFail({
+		select: ["uId", "firstName", "lastName", "email", "password", "resetToken"],
+		where: { email, resetToken },
+	});
+}
+
+export async function GetToken(
+	req: Request,
+): Promise<string | jwt.JwtPayload | undefined> {
+	const token = req.header("x-token");
+
+	if (token) return jwt.verify(token, config.JWT_SECRECT);
+}

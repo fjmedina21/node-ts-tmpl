@@ -1,8 +1,14 @@
 import { Router } from "express";
 import { check } from "express-validator";
 
-import { LogIn, SignUp, ChangePassword } from "../controllers";
-import { ValidateFields, ValidateJWT } from "../middlewares";
+import {
+	LogIn,
+	SignUp,
+	ChangePassword,
+	ForgotPassword,
+	ResetPassword,
+} from "../controllers";
+import { IsUserAdmin, ValidateFields, ValidateJWT } from "../middlewares";
 import { EmailExist, UserIdExist } from "../helpers";
 
 const AuthRoutes = Router();
@@ -38,6 +44,7 @@ AuthRoutes.post(
 AuthRoutes.patch(
 	"/change-password/:id",
 	[
+		IsUserAdmin,
 		ValidateJWT,
 		check(["id", "currentPassword", "newPassword", "confirmPassword"]).trim(),
 		check("id", "Invalid ID").isUUID().custom(UserIdExist),
@@ -56,6 +63,29 @@ AuthRoutes.patch(
 		ValidateFields,
 	],
 	ChangePassword
+);
+
+AuthRoutes.patch(
+	"/forgot-password",
+	[check("email", "Email required").not().isEmpty(), ValidateFields],
+	ForgotPassword
+);
+
+AuthRoutes.put(
+	"/reset-password/:resetToken",
+	[
+		check(["newPassword", "confirmPassword"], "All fields are required")
+			.not()
+			.isEmpty(),
+		check(
+			"newPassword",
+			"The new password must be 8 character minimum."
+		).isLength({
+			min: 8,
+		}),
+		ValidateFields,
+	],
+	ResetPassword
 );
 
 export { AuthRoutes };

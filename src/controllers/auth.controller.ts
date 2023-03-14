@@ -1,17 +1,21 @@
-import "dotenv/config";
-
 import { Response, Request, CookieOptions } from "express";
 
+import { config } from "../config/index";
 import { User, IUser } from "../models";
-import { GenerateJWT, UpadatePassword, IPassword } from "../helpers";
+import { GenerateJWT, GenerateResetJWT, ValidateResetJWT } from "../helpers";
 
-function SendCookie(res: Response, token: unknown) {
+function SetCookie(res: Response, name: string, token: unknown) {
 	try {
+		const now: number = new Date().getTime();
+		const expires = new Date(now + config.JWT_COOKIE_EXPIRES_IN_DAY);
+
 		const cookieOptions: CookieOptions = {
 			httpOnly: true,
+			expires,
 		};
 
-		return res.cookie("jwt", token, cookieOptions);
+		//res.clearCookie(name);
+		return res.cookie(name, token, cookieOptions);
 	} catch (error: unknown) {
 		return;
 	}
@@ -27,15 +31,27 @@ export async function SignUp(req: Request, res: Response) {
 		user.email = email;
 		user.hashPassword(password);
 		user.isAdmin = isAdmin;
-
 		await user.save();
 
-		const token: unknown = await GenerateJWT(user.uId, user.isAdmin);
-		SendCookie(res, token);
+		const roles = { isAdmin: user.isAdmin, isUser: user.isUser } as IUser;
+		const token: unknown = await GenerateJWT(user.uId, roles);
+		SetCookie(res, "login", token);
 
-		return res.status(201).json({ user, token });
+		return res.status(201).json({
+			result: {
+				ok: true,
+				user,
+				token,
+			},
+		});
 	} catch (error: unknown) {
-		return res.status(400).json({ error });
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: error.name,
+				message: error.message,
+			};
+		return res.status(500).json({ error });
 	}
 }
 
@@ -43,7 +59,7 @@ export const LogIn = async (req: Request, res: Response) => {
 	try {
 		const { email, password }: IUser = req.body;
 
-		const user: User | null = await User.findOne({
+		const user: User = await User.findOneOrFail({
 			select: [
 				"uId",
 				"firstName",
@@ -51,16 +67,19 @@ export const LogIn = async (req: Request, res: Response) => {
 				"email",
 				"password",
 				"isAdmin",
-				"createdAt",
-				"updatedAt",
+				"isUser",
+				"state",
 			],
 			where: { email },
 		});
 
-		if (!user) {
+		if (!user.state) {
 			return res.status(400).json({
-				message:
-					"That email account doesn't exist. Enter a different account or get a new one."
+				result: {
+					ok: false,
+					message:
+						"Account not registered. Enter a different account or get a new one.",
+				},
 			});
 		}
 
@@ -68,36 +87,159 @@ export const LogIn = async (req: Request, res: Response) => {
 
 		if (!match) {
 			return res.status(400).json({
-				message: "Your account or password is incorrect",
+				result: {
+					ok: false,
+					message: "Your account or password is incorrect",
+				},
 			});
 		}
 
-		const token: unknown = await GenerateJWT(user.uId, user.isAdmin);
-		SendCookie(res, token);
+		const roles = { isAdmin: user.isAdmin, isUser: user.isUser } as IUser;
+		const token: unknown = await GenerateJWT(user.uId, roles);
+		SetCookie(res, "login", token);
 
-		res.status(200).json({ user, token });
+		res.status(200).json({
+			result: {
+				ok: true,
+				user,
+				token,
+			},
+		});
 	} catch (error: unknown) {
-		return res.status(400).json({ error });
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: error.name,
+				message: error.message,
+			};
+		return res.status(500).json({ error });
 	}
 };
 
 export async function ChangePassword(req: Request, res: Response) {
 	try {
 		const { id } = req.params;
-		const user: User | null = await User.findOneBy({ uId: id });
-		const { currentPassword, newPassword, confirmPassword }: IPassword =
-			req.body;
+		const { currentPassword, newPassword, confirmPassword } = req.body;
 
-		if (user) {
-			await UpadatePassword(id, currentPassword, newPassword, confirmPassword);
-			user.hashPassword(newPassword);
-			await user.save();
+		const user: User = await User.findOneOrFail({
+			select: ["password"],
+			where: { uId: id },
+		});
+
+		if (!user.comparePassword(currentPassword)) {
+			return res.status(400).json({
+				result: {
+					ok: false,
+					message: "Incorrect current password",
+				},
+			});
 		}
 
+		if (user.comparePassword(newPassword)) {
+			return res.status(400).json({
+				result: {
+					ok: false,
+					message: "New password can't be the same",
+				},
+			});
+		}
+
+		if (confirmPassword !== newPassword) {
+			return res.status(400).json({
+				result: {
+					ok: false,
+					message: "Passwords unmatch",
+				},
+			});
+		}
+
+		user.hashPassword(confirmPassword);
+		await user.save();
+
 		return res.status(200).json({
-			message: "User password updated",
+			result: {
+				ok: true,
+				message: "Passwor updated",
+			},
 		});
 	} catch (error: unknown) {
-		return res.status(400).json({ error });
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: error.name,
+				message: error.message,
+			};
+		return res.status(500).json({ error });
+	}
+}
+
+export async function ForgotPassword(req: Request, res: Response) {
+	try {
+		const { email }: IUser = req.body;
+		const user: User = await User.findOneByOrFail({ email });
+
+		const resetToken = (await GenerateResetJWT(email)) as string;
+		const verificationLink = `http://localhost:${
+			config.DEV || 3000
+		}/auth/reset-password/${resetToken}`;
+
+		user.resetToken = resetToken;
+		await user.save();
+
+		// TODO: enviar mail con reset token link
+
+		return res.status(200).json({
+			result: {
+				ok: true,
+				message: "reset link emailed",
+				verificationLink,
+				resetToken,
+			},
+		});
+	} catch (error: unknown) {
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: error.name,
+				message: error.message,
+			};
+		return res.status(500).json({ error });
+	}
+}
+
+export async function ResetPassword(req: Request, res: Response) {
+	try {
+		const { newPassword, confirmPassword } = req.body;
+		const { resetToken } = req.params;
+
+		const user: User = await ValidateResetJWT(resetToken);
+
+		if (confirmPassword !== newPassword) {
+			return res.status(400).json({
+				result: {
+					ok: false,
+					message: "Passwords unmatch",
+				},
+			});
+		}
+
+		user.hashPassword(confirmPassword);
+		user.resetToken = "";
+		await user.save();
+
+		return res.status(200).json({
+			result: {
+				ok: true,
+				message: "Passwords set",
+			},
+		});
+	} catch (error: unknown) {
+		if (error instanceof Error)
+			error = {
+				ok: false,
+				name: "Invalid token",
+				message: "Token already used",
+			};
+		return res.status(500).json({ error });
 	}
 }
