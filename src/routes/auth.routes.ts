@@ -4,9 +4,9 @@ import { check } from "express-validator";
 import {
 	LogIn,
 	SignUp,
-	ChangePassword,
-	ForgotPassword,
 	ResetPassword,
+	ForgotPassword,
+	ChangePassword,
 } from "../controllers";
 import { IsUserAdmin, ValidateFields, ValidateJWT } from "../middlewares";
 import { EmailExist, UserIdExist } from "../helpers";
@@ -44,8 +44,8 @@ AuthRoutes.post(
 AuthRoutes.patch(
 	"/change-password/:id",
 	[
-		IsUserAdmin,
 		ValidateJWT,
+		IsUserAdmin,
 		check(["id", "currentPassword", "newPassword", "confirmPassword"]).trim(),
 		check("id", "Invalid ID").isUUID().custom(UserIdExist),
 		check(
@@ -65,9 +65,13 @@ AuthRoutes.patch(
 	ChangePassword
 );
 
-AuthRoutes.patch(
+AuthRoutes.post(
 	"/forgot-password",
-	[check("email", "Email required").not().isEmpty(), ValidateFields],
+	[
+		check("email", "Email required").not().isEmpty(),
+		check("email", "Invalid email").isEmail(),
+		ValidateFields,
+	],
 	ForgotPassword
 );
 

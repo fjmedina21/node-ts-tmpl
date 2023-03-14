@@ -11,11 +11,21 @@ export async function ValidateJWT(
 ) {
 	try {
 		const { uId } = (await GetToken(req)) as JwtPayload;
+
 		//Check if logged user is active
-		await User.findOneByOrFail({
+		const userExist: User | null = await User.findOneBy({
 			uId,
 			state: true,
 		});
+
+		if (!userExist) {
+			return res.status(400).json({
+				result: {
+					ok: false,
+					message: "Login or Signup first",
+				},
+			});
+		}
 
 		next();
 	} catch (error: unknown) {
@@ -23,7 +33,7 @@ export async function ValidateJWT(
 			error = {
 				ok: false,
 				name: error.name,
-				message: error.message,
+				message: "Login or Signup first",
 			};
 		return res.status(500).json({ error });
 	}
@@ -41,9 +51,7 @@ export async function IsAdmin(req: Request, res: Response, next: NextFunction) {
 
 		next();
 	} catch (error: unknown) {
-		error = !error
-			? error
-			: { result: { ok: false, message: "Need ADMIN access" } };
+		error = { result: { ok: false, message: "Need ADMIN access" } };
 		return res.status(403).json({ error });
 	}
 }
@@ -58,7 +66,7 @@ export async function IsUserAdmin(
 
 		if (isUser || isAdmin) next();
 	} catch (error: unknown) {
-		error = !error ? error : { result: { ok: false, message: "Unauthorized" } };
+		error = { result: { ok: false, message: "Unauthorized" } };
 		return res.status(401).json({ error });
 	}
 }

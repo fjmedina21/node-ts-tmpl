@@ -3,7 +3,7 @@ import { check } from "express-validator";
 
 import { GetUser, GetUsers, PatchUser, DeleteUser } from "../controllers";
 
-import { UserIdExist } from "../helpers";
+import { EmailExist, UserIdExist } from "../helpers";
 import {
 	IsAdmin,
 	IsUserAdmin,
@@ -18,8 +18,8 @@ UserRoutes.get("/", [ValidateJWT, ValidateFields], GetUsers);
 UserRoutes.get(
 	"/:id",
 	[
-		//IsAdmin,
 		ValidateJWT,
+		IsUserAdmin,
 		check("id", "Invalid ID").isUUID().custom(UserIdExist),
 		ValidateFields,
 	],
@@ -29,10 +29,11 @@ UserRoutes.get(
 UserRoutes.patch(
 	"/:id",
 	[
-		IsUserAdmin,
 		ValidateJWT,
+		IsUserAdmin,
 		check(["id", "firstName", "lastName", "email", "password"]).trim(),
 		check("id", "Invalid ID").isUUID().custom(UserIdExist),
+		check("email", "Email already in use").custom(EmailExist),
 		ValidateFields,
 	],
 	PatchUser
@@ -41,8 +42,8 @@ UserRoutes.patch(
 UserRoutes.delete(
 	"/:id",
 	[
-		IsUserAdmin,
 		ValidateJWT,
+		IsAdmin,
 		check("id", "Invalid ID").isUUID().custom(UserIdExist),
 		ValidateFields,
 	],

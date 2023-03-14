@@ -21,7 +21,7 @@ export function GenerateJWT(
 			options,
 			(error: unknown, token: string | undefined) => {
 				if (error) reject(error);
-				else resolve(token);
+				else resolve(token); // TODO : setear header aqui
 			}
 		);
 	});
@@ -54,15 +54,15 @@ export async function ValidateResetJWT(resetToken: string): Promise<User> {
 	) as JwtPayload;
 
 	return await User.findOneOrFail({
-		select: ["uId", "firstName", "lastName", "email", "password", "resetToken"],
+		select: ["email", "password", "resetToken"],
 		where: { email, resetToken },
 	});
 }
 
 export async function GetToken(
-	req: Request,
+	req: Request
 ): Promise<string | jwt.JwtPayload | undefined> {
-	const token = req.header("x-token");
+	const token = req.header("auth");
 
 	if (token) return jwt.verify(token, config.JWT_SECRECT);
 }

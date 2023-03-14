@@ -2,9 +2,9 @@ import { User } from "../models";
 
 export async function EmailExist(email: string) {
 	try {
-		const exist: User | null = await User.findOneBy({ email: email });
+		const user: User = await User.findOneByOrFail({ email });
 
-		if (exist) {
+		if (user) {
 			return Promise.reject(
 				"Someone already has that email address. Try another one."
 			);
@@ -14,11 +14,11 @@ export async function EmailExist(email: string) {
 	}
 }
 
-export async function UserIdExist(id: string) {
+export async function UserIdExist(uId: string) {
 	try {
-		const exist: User | null = await User.findOneBy({ uId: id, state: true });
+		const user: User = await User.findOneByOrFail({ uId, state: true });
 
-		if (!exist) {
+		if (!user) {
 			return Promise.reject("User not found");
 		}
 	} catch (error: unknown) {

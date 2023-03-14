@@ -34,7 +34,8 @@ export async function SignUp(req: Request, res: Response) {
 		await user.save();
 
 		const roles = { isAdmin: user.isAdmin, isUser: user.isUser } as IUser;
-		const token: unknown = await GenerateJWT(user.uId, roles);
+		const token = (await GenerateJWT(user.uId, roles)) as string;
+		//res.setHeader("auth", token);
 		SetCookie(res, "login", token);
 
 		return res.status(201).json({
@@ -176,12 +177,23 @@ export async function ChangePassword(req: Request, res: Response) {
 export async function ForgotPassword(req: Request, res: Response) {
 	try {
 		const { email }: IUser = req.body;
-		const user: User = await User.findOneByOrFail({ email });
 
+		const emailExist: User | null = await User.findOneBy({ email, state:true });
+
+		if (!emailExist) {
+			return res.status(400).json({
+				result: {
+					ok: false,
+					message: "This email account doesn't exist",
+				},
+			});
+		}
+
+		const user: User = await User.findOneByOrFail({ email, state: true });
 		const resetToken = (await GenerateResetJWT(email)) as string;
-		const verificationLink = `http://localhost:${
-			config.DEV || 3000
-		}/auth/reset-password/${resetToken}`;
+		const verificationLink = `${req.protocol}://${req.header(
+			"host"
+		)}/auth/reset-password/${resetToken}`;
 
 		user.resetToken = resetToken;
 		await user.save();
@@ -193,7 +205,6 @@ export async function ForgotPassword(req: Request, res: Response) {
 				ok: true,
 				message: "reset link emailed",
 				verificationLink,
-				resetToken,
 			},
 		});
 	} catch (error: unknown) {
@@ -214,7 +225,7 @@ export async function ResetPassword(req: Request, res: Response) {
 
 		const user: User = await ValidateResetJWT(resetToken);
 
-		if (confirmPassword !== newPassword) {
+		if ((confirmPassword !== newPassword)) {
 			return res.status(400).json({
 				result: {
 					ok: false,

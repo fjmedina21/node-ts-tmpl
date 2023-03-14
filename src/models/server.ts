@@ -9,15 +9,17 @@ import helmet from "helmet";
 
 import { AppDataSource } from "../config/orm.config";
 import { config } from "../config/index";
-import { UserRoutes, AuthRoutes, SearchRoutes } from "../routes";
+import { UserRoutes, AuthRoutes, SearchRoutes,$404Route,HomeRoute } from "../routes";
 
 export class Server {
 	private app: Express;
 	private PORT: number;
 	private readonly path = {
+		home: "/",
 		auth: "/auth",
-		search: "/search",
 		users: "/users",
+		search: "/search",
+		$404: "/",
 	};
 
 	constructor() {
@@ -50,9 +52,11 @@ export class Server {
 	}
 
 	private routes(): void {
+		this.app.use(this.path.home, HomeRoute);
 		this.app.use(this.path.auth, AuthRoutes);
 		this.app.use(this.path.search, SearchRoutes);
 		this.app.use(this.path.users, UserRoutes);
+		this.app.use(this.path.$404, $404Route);
 	}
 
 	private listen(): void {

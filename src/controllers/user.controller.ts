@@ -1,6 +1,8 @@
 import { Response, Request } from "express";
+//import { JwtPayload } from "jsonwebtoken";
 
 import { User, IUser } from "../models";
+//import { GetToken } from "../helpers/index";
 
 export async function GetUsers(req: Request, res: Response) {
 	try {
@@ -53,20 +55,29 @@ export async function GetUser(req: Request, res: Response) {
 
 export async function PatchUser(req: Request, res: Response) {
 	try {
-		//TODO: implementar validacion para el email
 		const { id } = req.params;
-		const { firstName, lastName, email }: IUser = req.body;
+		const { firstName, lastName, email, isAdmin }: IUser = req.body;
+
 
 		const user: User = await User.findOneByOrFail({ uId: id });
+		//const token = (await GetToken(req)) as JwtPayload;
 
 		user.firstName = firstName ? firstName : user.firstName;
 		user.lastName = lastName ? lastName : user.lastName;
 		user.email = email ? email : user.email;
-		await user.save();
 
+		//TODO: validar role desde el tokem en el header
+		// if admin set someone else data keep token but if it's his own genera new token
+		/*if (token.isAdmin) {
+			user.isAdmin = isAdmin;
+			const roles = { isAdmin: user.isAdmin, isUser: user.isUser } as IUser;
+			await GenerateJWT(user.uId, roles);
+		}*/
+
+		await user.save();
 		return res
 			.status(200)
-			.json({ result: { ok: true, message: "User updated" } });
+			.json({ result: { ok: true, message: "User updated", user } });
 	} catch (error: unknown) {
 		if (error instanceof Error)
 			error = {
