@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 //import { JwtPayload } from "jsonwebtoken";
 
-import { User, IUser } from "../models";
+import { User, IUser } from "../models/index";
 //import { GetToken } from "../helpers/index";
 
 export async function GetUsers(req: Request, res: Response) {
