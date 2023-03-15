@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
+import { JwtPayload } from "jsonwebtoken";
 
 import { User } from "../models";
-import { GetToken } from "../helpers/index";
-import { JwtPayload } from "jsonwebtoken";
+import { GetToken } from "../helpers";
 
 export async function ValidateJWT(
 	req: Request,

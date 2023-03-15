@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import "dotenv/config";
+//import "dotenv/config";
 
 import express, { Express } from "express";
 import cors from "cors";
@@ -8,7 +8,7 @@ import helmet from "helmet";
 //import path from "path";
 
 import { AppDataSource } from "../config/orm.config";
-import { config } from "../config/index";
+import { config } from "../config";
 import { UserRoutes, AuthRoutes, SearchRoutes,$404Route,HomeRoute } from "../routes";
 
 export class Server {
@@ -47,7 +47,6 @@ export class Server {
 		} catch (error: unknown) {
 			console.error("------------------------------------------------");
 			console.error(error);
-			console.error("------------------------------------------------");
 		}
 	}
 

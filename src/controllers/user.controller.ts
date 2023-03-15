@@ -1,8 +1,8 @@
 import { Response, Request } from "express";
 //import { JwtPayload } from "jsonwebtoken";
 
-import { User, IUser } from "../models/index";
-//import { GetToken } from "../helpers/index";
+import { User, IUser } from "../models";
+//import { GetToken } from "../helpers";
 
 export async function GetUsers(req: Request, res: Response) {
 	try {
