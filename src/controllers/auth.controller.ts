@@ -251,9 +251,9 @@ export async function ResetPassword(req: Request, res: Response) {
 		if (error instanceof Error)
 			error = {
 				ok: false,
-				name: "Invalid token",
-				message: "Token already used",
+				name: "Invalid Token",
+				message: error.message,
 			};
-		return res.status(500).json({ result: error });
+		return res.status(400).json({ result: error });
 	}
 }
