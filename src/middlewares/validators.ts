@@ -66,9 +66,9 @@ export async function IsRegistered(
 	next: NextFunction
 ) {
 	try {
-		const { isAdmin, isUser } = (await GetToken(req)) as JwtPayload;
+		const { isUser } = (await GetToken(req)) as JwtPayload;
 
-		if (isUser || isAdmin) next();
+		if (isUser) next();
 	} catch (error: unknown) {
 		if (error instanceof Error)
 			error = {
