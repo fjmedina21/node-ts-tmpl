@@ -60,7 +60,7 @@ export async function IsAdmin(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-export async function IsRegistered(
+export async function IsUser(
 	req: Request,
 	res: Response,
 	next: NextFunction
