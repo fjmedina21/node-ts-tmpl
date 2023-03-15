@@ -4,21 +4,21 @@ import { check } from "express-validator";
 import { GetUser, GetUsers, PatchUser, DeleteUser } from "../controllers";
 
 import {
-	IsAdmin,
+ IsUser,
+ IsAdmin,
 	EmailExist,
 	UserIdExist,
 	ValidateJWT,
-	IsRegistered,
 	ValidateFields,
 } from "../middlewares";
 
 const UserRoutes = Router();
 
-UserRoutes.get("/", [ValidateJWT, ValidateFields], GetUsers);
+UserRoutes.get("/", [ValidateJWT, IsUser, ValidateFields], GetUsers);
 
 UserRoutes.get(
 	"/user/:id",
-	[ValidateJWT, IsRegistered, UserIdExist, ValidateFields],
+	[ValidateJWT, IsUser, UserIdExist, ValidateFields],
 	GetUser
 );
 
@@ -26,7 +26,7 @@ UserRoutes.patch(
 	"/user/:id",
 	[
 		ValidateJWT,
-		IsRegistered,
+		IsUser,
 		check(["id", "firstName", "lastName", "email", "password"]).trim(),
 		UserIdExist,
 		check("email", "Invalid email").isEmail(),
