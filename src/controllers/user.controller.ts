@@ -6,17 +6,20 @@ import { User, IUser } from "../models";
 
 export async function GetUsers(req: Request, res: Response) {
 	try {
-		const users: [User[], number] =
+		const { from = 0, limit = 20 } = req.query;
+		const [users, total]: [User[], number] =
 			(await User.findAndCount({
 				where: { state: true },
 				order: { updatedAt: "DESC", createdAt: "DESC" },
+				skip: Number(from),
+				take: Number(limit),
 			})) || [];
 
 		return res.status(200).json({
 			result: {
 				ok: true,
-				total: users[1],
-				users: users[0],
+				total,
+				users,
 			},
 		});
 	} catch (error: unknown) {
@@ -26,7 +29,7 @@ export async function GetUsers(req: Request, res: Response) {
 				name: error.name,
 				message: error.message,
 			};
-		return res.status(500).json({ error });
+		return res.status(500).json({ result: error });
 	}
 }
 
@@ -49,7 +52,7 @@ export async function GetUser(req: Request, res: Response) {
 				name: error.name,
 				message: error.message,
 			};
-		return res.status(500).json({ error });
+		return res.status(500).json({ result: error });
 	}
 }
 
@@ -57,7 +60,6 @@ export async function PatchUser(req: Request, res: Response) {
 	try {
 		const { id } = req.params;
 		const { firstName, lastName, email, isAdmin }: IUser = req.body;
-
 
 		const user: User = await User.findOneByOrFail({ uId: id });
 		//const token = (await GetToken(req)) as JwtPayload;
@@ -85,7 +87,7 @@ export async function PatchUser(req: Request, res: Response) {
 				name: error.name,
 				message: error.message,
 			};
-		return res.status(500).json({ error });
+		return res.status(500).json({ result: error });
 	}
 }
 
@@ -108,6 +110,6 @@ export async function DeleteUser(req: Request, res: Response) {
 				name: error.name,
 				message: error.message,
 			};
-		return res.status(500).json({ error });
+		return res.status(500).json({ result: error });
 	}
 }

@@ -1,31 +1,5 @@
 import { User } from "../models";
 
-export async function EmailExist(email: string) {
-	try {
-		const user: User = await User.findOneByOrFail({ email });
-
-		if (user) {
-			return Promise.reject(
-				"Someone already has that email address. Try another one."
-			);
-		}
-	} catch (error: unknown) {
-		return Promise.reject(error);
-	}
-}
-
-export async function UserIdExist(uId: string) {
-	try {
-		const user: User = await User.findOneByOrFail({ uId, state: true });
-
-		if (!user) {
-			return Promise.reject("User not found");
-		}
-	} catch (error: unknown) {
-		return Promise.reject(error);
-	}
-}
-
 // TODO: implement personalized EMAIL validation
 /*export function IsEmail(email: string) {
 	try {

@@ -8,8 +8,14 @@ import {
 	ForgotPassword,
 	ChangePassword,
 } from "../controllers";
-import { IsUserAdmin, ValidateFields, ValidateJWT } from "../middlewares";
-import { EmailExist, UserIdExist } from "../helpers";
+
+import {
+	EmailExist,
+	UserIdExist,
+	ValidateJWT,
+	IsRegistered,
+	ValidateFields,
+} from "../middlewares";
 
 const AuthRoutes = Router();
 
@@ -32,7 +38,8 @@ AuthRoutes.post(
 		check(["firstName", "lastName", "email", "password"]).trim(),
 		check("firstName", "firstName required").not().isEmpty(),
 		check("lastName", "lastName required").not().isEmpty(),
-		check("email", "Invalid email").isEmail().custom(EmailExist),
+		check("email", "Invalid email").isEmail(),
+		EmailExist,
 		check("password", "Password must be at least 8 characters").isLength({
 			min: 8,
 		}),
@@ -45,9 +52,9 @@ AuthRoutes.patch(
 	"/change-password/:id",
 	[
 		ValidateJWT,
-		IsUserAdmin,
+		IsRegistered,
 		check(["id", "currentPassword", "newPassword", "confirmPassword"]).trim(),
-		check("id", "Invalid ID").isUUID().custom(UserIdExist),
+		UserIdExist,
 		check(
 			["currentPassword", "newPassword", "confirmPassword"],
 			"All fields are required"

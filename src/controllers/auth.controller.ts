@@ -52,7 +52,7 @@ export async function SignUp(req: Request, res: Response) {
 				name: error.name,
 				message: error.message,
 			};
-		return res.status(500).json({ error });
+		return res.status(500).json({ result: error });
 	}
 }
 
@@ -113,7 +113,7 @@ export const LogIn = async (req: Request, res: Response) => {
 				name: error.name,
 				message: error.message,
 			};
-		return res.status(500).json({ error });
+		return res.status(500).json({ result: error });
 	}
 };
 
@@ -170,7 +170,7 @@ export async function ChangePassword(req: Request, res: Response) {
 				name: error.name,
 				message: error.message,
 			};
-		return res.status(500).json({ error });
+		return res.status(500).json({ result: error });
 	}
 }
 
@@ -178,7 +178,10 @@ export async function ForgotPassword(req: Request, res: Response) {
 	try {
 		const { email }: IUser = req.body;
 
-		const emailExist: User | null = await User.findOneBy({ email, state:true });
+		const emailExist: User | null = await User.findOneBy({
+			email,
+			state: true,
+		});
 
 		if (!emailExist) {
 			return res.status(400).json({
@@ -214,7 +217,7 @@ export async function ForgotPassword(req: Request, res: Response) {
 				name: error.name,
 				message: error.message,
 			};
-		return res.status(500).json({ error });
+		return res.status(500).json({ result: error });
 	}
 }
 
@@ -225,7 +228,7 @@ export async function ResetPassword(req: Request, res: Response) {
 
 		const user: User = await ValidateResetJWT(resetToken);
 
-		if ((confirmPassword !== newPassword)) {
+		if (confirmPassword !== newPassword) {
 			return res.status(400).json({
 				result: {
 					ok: false,
@@ -251,6 +254,6 @@ export async function ResetPassword(req: Request, res: Response) {
 				name: "Invalid token",
 				message: "Token already used",
 			};
-		return res.status(500).json({ error });
+		return res.status(500).json({ result: error });
 	}
 }

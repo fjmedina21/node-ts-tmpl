@@ -3,11 +3,12 @@ import { check } from "express-validator";
 
 import { GetUser, GetUsers, PatchUser, DeleteUser } from "../controllers";
 
-import { EmailExist, UserIdExist } from "../helpers";
 import {
 	IsAdmin,
-	IsUserAdmin,
+	EmailExist,
+	UserIdExist,
 	ValidateJWT,
+	IsRegistered,
 	ValidateFields,
 } from "../middlewares";
 
@@ -16,37 +17,28 @@ const UserRoutes = Router();
 UserRoutes.get("/", [ValidateJWT, ValidateFields], GetUsers);
 
 UserRoutes.get(
-	"/:id",
-	[
-		ValidateJWT,
-		IsUserAdmin,
-		check("id", "Invalid ID").isUUID().custom(UserIdExist),
-		ValidateFields,
-	],
+	"/user/:id",
+	[ValidateJWT, IsRegistered, UserIdExist, ValidateFields],
 	GetUser
 );
 
 UserRoutes.patch(
-	"/:id",
+	"/user/:id",
 	[
 		ValidateJWT,
-		IsUserAdmin,
+		IsRegistered,
 		check(["id", "firstName", "lastName", "email", "password"]).trim(),
-		check("id", "Invalid ID").isUUID().custom(UserIdExist),
-		check("email", "Email already in use").custom(EmailExist),
+		UserIdExist,
+		check("email", "Invalid email").isEmail(),
+		EmailExist,
 		ValidateFields,
 	],
 	PatchUser
 );
 
 UserRoutes.delete(
-	"/:id",
-	[
-		ValidateJWT,
-		IsAdmin,
-		check("id", "Invalid ID").isUUID().custom(UserIdExist),
-		ValidateFields,
-	],
+	"/user/:id",
+	[ValidateJWT, IsAdmin, UserIdExist, ValidateFields],
 	DeleteUser
 );
 
