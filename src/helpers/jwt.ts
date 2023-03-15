@@ -54,7 +54,7 @@ export async function ValidateResetJWT(resetToken: string): Promise<User> {
 	) as JwtPayload;
 
 	return await User.findOneOrFail({
-		select: ["email", "password", "resetToken"],
+		select: [ "password", "resetToken"],
 		where: { email, resetToken },
 	});
 }
