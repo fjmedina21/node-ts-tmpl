@@ -10,10 +10,10 @@ import {
 } from "../controllers";
 
 import {
+	IsUser,
 	EmailExist,
 	UserIdExist,
 	ValidateJWT,
-	IsRegistered,
 	ValidateFields,
 } from "../middlewares";
 
@@ -52,7 +52,7 @@ AuthRoutes.patch(
 	"/change-password/:id",
 	[
 		ValidateJWT,
-		IsRegistered,
+	 IsUser,
 		check(["id", "currentPassword", "newPassword", "confirmPassword"]).trim(),
 		UserIdExist,
 		check(
