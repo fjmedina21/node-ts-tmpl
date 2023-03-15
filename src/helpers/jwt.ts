@@ -2,7 +2,7 @@ import { Request } from "express";
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
 import { config } from "../config/index";
-import { IUser, User } from "../models";
+import { IUser, User } from "../models/index";
 
 export function GenerateJWT(
 	uId: string,
