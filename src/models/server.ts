@@ -1,5 +1,4 @@
 import "reflect-metadata";
-//import "dotenv/config";
 
 import express, { Express } from "express";
 import cors from "cors";
@@ -24,7 +23,7 @@ export class Server {
 
 	constructor() {
 		this.app = express();
-		this.PORT = config.DEV || 3000;
+		this.PORT = config.DEV_PORT || 3000;
 
 		this.dbConnection();
 		this.middlewares();

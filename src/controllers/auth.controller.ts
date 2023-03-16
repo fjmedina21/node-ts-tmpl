@@ -6,15 +6,15 @@ import { GenerateJWT, GenerateResetJWT, ValidateResetJWT } from "../helpers";
 
 function SetCookie(res: Response, name: string, token: unknown) {
 	try {
+		const oneDay: number = 24 * 60 * 60 * 1000;
 		const now: number = new Date().getTime();
-		const expires = new Date(now + config.JWT_COOKIE_EXPIRES_IN_DAY);
+		const expires = new Date(now + config.JWT_COOKIE_EXPIRES_IN_DAY * oneDay);
 
 		const cookieOptions: CookieOptions = {
 			httpOnly: true,
 			expires,
 		};
 
-		//res.clearCookie(name);
 		return res.cookie(name, token, cookieOptions);
 	} catch (error: unknown) {
 		return;
