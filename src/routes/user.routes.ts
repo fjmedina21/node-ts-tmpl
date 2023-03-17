@@ -29,7 +29,6 @@ UserRoutes.patch(
 		IsUser,
 		check(["id", "firstName", "lastName", "email", "password"]).trim(),
 		UserIdExist,
-		check("email", "Invalid email").isEmail(),
 		EmailExist,
 		ValidateFields,
 	],

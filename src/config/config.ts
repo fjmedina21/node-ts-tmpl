@@ -13,7 +13,6 @@ export const config = {
 	JWT_SESSION_EXPIRES_IN: "5h",
 	JWT_RESET_TOKEN_SECRECT: "pr1V@t3K3yr3sEtT0k3n",
 	JWT_RESET_TOKEN_EXPIRES_IN: "10m",
-	JWT_COOKIE_EXPIRES_IN_DAY: 1
 };
 
 export { };

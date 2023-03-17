@@ -8,9 +8,7 @@ export function ValidateFields(
 ) {
 	const errors: Result = validationResult(req);
 
-	if (!errors.isEmpty()) {
-		return res.status(400).json(errors);
-	}
+	if (!errors.isEmpty()) return res.status(400).json(errors);
 
 	next();
 }

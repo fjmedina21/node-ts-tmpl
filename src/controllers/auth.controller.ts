@@ -1,25 +1,7 @@
-import { Response, Request, CookieOptions } from "express";
+import { Response, Request } from "express";
 
-import { config } from "../config/index";
 import { User, IUser } from "../models";
-import { GenerateJWT, GenerateResetJWT, ValidateResetJWT } from "../helpers";
-
-function SetCookie(res: Response, name: string, token: unknown) {
-	try {
-		const oneDay: number = 24 * 60 * 60 * 1000;
-		const now: number = new Date().getTime();
-		const expires = new Date(now + config.JWT_COOKIE_EXPIRES_IN_DAY * oneDay);
-
-		const cookieOptions: CookieOptions = {
-			httpOnly: true,
-			expires,
-		};
-
-		return res.cookie(name, token, cookieOptions);
-	} catch (error: unknown) {
-		return;
-	}
-}
+import { GenerateJWT, GenerateResetJWT, ValidateResetJWT, ErrorHandler } from "../helpers";
 
 export async function SignUp(req: Request, res: Response) {
 	try {
@@ -35,24 +17,12 @@ export async function SignUp(req: Request, res: Response) {
 
 		const roles = { isAdmin: user.isAdmin, isUser: user.isUser } as IUser;
 		const token = (await GenerateJWT(user.uId, roles)) as string;
-		//res.setHeader("auth", token);
-		SetCookie(res, "login", token);
 
 		return res.status(201).json({
-			result: {
-				ok: true,
-				user,
-				token,
-			},
+			result: { ok: true, user, token }
 		});
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: error.name,
-				message: error.message,
-			};
-		return res.status(500).json({ result: error });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }
 
@@ -74,46 +44,20 @@ export const LogIn = async (req: Request, res: Response) => {
 			where: { email },
 		});
 
-		if (!user.state) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message:
-						"Account not registered. Enter a different account or get a new one.",
-				},
-			});
-		}
+		if (!user.state) throw new Error();
 
-		const match: boolean = user.comparePassword(password);
-
-		if (!match) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message: "Your account or password is incorrect",
-				},
-			});
-		}
+		if (!(user.comparePassword(password))) throw new ErrorHandler("Your account or password is incorrect", 400);
 
 		const roles = { isAdmin: user.isAdmin, isUser: user.isUser } as IUser;
-		const token: unknown = await GenerateJWT(user.uId, roles);
-		SetCookie(res, "login", token);
+		const token = await GenerateJWT(user.uId, roles) as string
 
 		res.status(200).json({
-			result: {
-				ok: true,
-				user,
-				token,
-			},
+			result: { ok: true, user, token }
 		});
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: error.name,
-				message: error.message,
-			};
-		return res.status(500).json({ result: error });
+		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
+
+		if (error instanceof Error) return res.status(400).json({ result: { ok: false, message: "That account doesn't exist. Enter a different account or create a new one" } });
 	}
 };
 
@@ -127,32 +71,9 @@ export async function ChangePassword(req: Request, res: Response) {
 			where: { uId: id },
 		});
 
-		if (!user.comparePassword(currentPassword)) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message: "Incorrect current password",
-				},
-			});
-		}
-
-		if (user.comparePassword(newPassword)) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message: "New password can't be the same",
-				},
-			});
-		}
-
-		if (confirmPassword !== newPassword) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message: "Passwords unmatch",
-				},
-			});
-		}
+		if (!user.comparePassword(currentPassword)) throw new Error("Incorrect current password");
+		if (user.comparePassword(newPassword)) throw new Error("New password can't be the same");
+		if (confirmPassword !== newPassword) throw new Error("Passwords unmatch");
 
 		user.hashPassword(confirmPassword);
 		await user.save();
@@ -164,13 +85,7 @@ export async function ChangePassword(req: Request, res: Response) {
 			},
 		});
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: error.name,
-				message: error.message,
-			};
-		return res.status(500).json({ result: error });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }
 
@@ -183,14 +98,7 @@ export async function ForgotPassword(req: Request, res: Response) {
 			state: true,
 		});
 
-		if (!emailExist) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message: "This email account doesn't exist",
-				},
-			});
-		}
+		if (!emailExist) throw new Error("This email account doesn't exist");
 
 		const user: User = await User.findOneByOrFail({ email, state: true });
 		const resetToken = (await GenerateResetJWT(email)) as string;
@@ -211,13 +119,7 @@ export async function ForgotPassword(req: Request, res: Response) {
 			},
 		});
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: error.name,
-				message: error.message,
-			};
-		return res.status(500).json({ result: error });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }
 
@@ -228,14 +130,7 @@ export async function ResetPassword(req: Request, res: Response) {
 
 		const user: User = await ValidateResetJWT(resetToken);
 
-		if (confirmPassword !== newPassword) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message: "Passwords unmatch",
-				},
-			});
-		}
+		if (confirmPassword !== newPassword) throw new ErrorHandler("This email account doesn't exist", 400);
 
 		user.hashPassword(confirmPassword);
 		user.resetToken = "";
@@ -248,12 +143,8 @@ export async function ResetPassword(req: Request, res: Response) {
 			},
 		});
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: "Invalid Token",
-				message: error.message,
-			};
-		return res.status(400).json({ result: error });
+		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
+
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }

@@ -4,10 +4,7 @@ import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { config } from "../config/index";
 import { IUser, User } from "../models/index";
 
-export function GenerateJWT(
-	uId: string,
-	{ isAdmin, isUser }: IUser
-): Promise<unknown> {
+export function GenerateJWT(uId: string, { isAdmin, isUser }: IUser): Promise<unknown> {
 	return new Promise((resolve, reject) => {
 		const payload = { uId, isAdmin, isUser };
 
@@ -21,7 +18,7 @@ export function GenerateJWT(
 			options,
 			(error: unknown, token: string | undefined) => {
 				if (error) reject(error);
-				else resolve(token); // TODO : setear header aqui
+				else resolve(token);
 			}
 		);
 	});
@@ -54,7 +51,7 @@ export async function ValidateResetJWT(resetToken: string): Promise<User> {
 	) as JwtPayload;
 
 	return await User.findOneOrFail({
-		select: [ "password", "resetToken"],
+		select: ["password", "resetToken"],
 		where: { email, resetToken },
 	});
 }
@@ -62,7 +59,7 @@ export async function ValidateResetJWT(resetToken: string): Promise<User> {
 export async function GetToken(
 	req: Request
 ): Promise<string | jwt.JwtPayload | undefined> {
-	const token = req.header("auth");
+	const token: string | undefined = req.header("auth");
 
 	if (token) return jwt.verify(token, config.JWT_SECRECT);
 }

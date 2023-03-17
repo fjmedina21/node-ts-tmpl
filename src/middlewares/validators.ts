@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 
 import { User } from "../models";
-import { GetToken } from "../helpers";
+import { ErrorHandler, GetToken } from "../helpers";
 
 export async function ValidateJWT(
 	req: Request,
@@ -17,24 +17,13 @@ export async function ValidateJWT(
 			state: true,
 		});
 
-		if (!userExist) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message: "Session ended",
-				},
-			});
-		}
+		if (!userExist) throw new ErrorHandler("Invalid token", 400);
 
 		next();
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: error.name,
-				message: "Session ended",
-			};
-		return res.status(400).json({ result: error });
+		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: { ok: error.ok, message: error.message } });
+
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }
 
@@ -42,21 +31,13 @@ export async function IsAdmin(req: Request, res: Response, next: NextFunction) {
 	try {
 		const { isAdmin } = (await GetToken(req)) as JwtPayload;
 
-		if (!isAdmin) {
-			return res
-				.status(403)
-				.json({ result: { ok: false, message: "Need ADMIN access" } });
-		}
+		if (!isAdmin) throw new ErrorHandler("Need ADMIN access", 400);
 
 		next();
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: error.name,
-				message: "Need ADMIN access",
-			};
-		return res.status(403).json({ result: error });
+		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: { ok: error.ok, message: error.message } });
+
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }
 
@@ -70,13 +51,7 @@ export async function IsUser(
 
 		if (isUser) next();
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: error.name,
-				message: "Create an account",
-			};
-		return res.status(401).json({ error });
+		if (error instanceof Error) return res.status(400).json({ result: { ok: false, message: "Create an account" } });
 	}
 }
 
@@ -89,23 +64,13 @@ export async function EmailExist(
 		const { email } = req.body;
 		const user: User | null = await User.findOneBy({ email });
 
-		if (user) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message: "Someone already has that email address. Try another one.",
-				},
-			});
-		}
+		if (user) throw new ErrorHandler("Someone already has that email address. Try another one.",400);
+
 		next();
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: error.name,
-				message: error.message,
-			};
-		return res.status(500).json({ error });
+		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: { ok: error.ok, message: error.message } });
+
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }
 
@@ -118,21 +83,12 @@ export async function UserIdExist(
 		const { id } = req.params;
 		const user: User | null = await User.findOneBy({ uId: id, state: true });
 
-		if (!user) {
-			return res.status(400).json({
-				result: {
-					ok: false,
-					message: "User not found",
-				},
-			});
-		}
+		if (!user) throw new ErrorHandler("Create an account",400);
+
 		next();
 	} catch (error: unknown) {
-		return res.status(500).json({
-			result: {
-				ok: false,
-				message: "SV_Err - User not found",
-			},
-		});
+		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: { ok: error.ok, message: error.message } });
+
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }

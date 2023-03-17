@@ -14,29 +14,19 @@ export async function Search(req: Request, res: Response) {
 				uId: term,
 				state: true,
 			});
-			return res.status(200).json({
-				result: user ? [user] : [],
-			});
+
+			return res.status(200).json({ result: user ? [user] : [] });
 		} else if (!isUUID) {
-			const user: [User[], number] = await User.findAndCount({
+			const [users, total] = await User.findAndCount({
 				where: [
 					{ state: true, firstName: Like(`%${term}%`) },
 					{ state: true, lastName: Like(`%${term}%`) },
 				],
 			});
 
-			return res.status(200).json({
-				total: user[1],
-				results: user[0],
-			});
+			return res.status(200).json({ total, results: users });
 		}
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			error = {
-				ok: false,
-				name: error.name,
-				message: error.message,
-			};
-		return res.status(500).json({ error });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }

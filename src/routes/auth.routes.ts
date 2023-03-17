@@ -11,6 +11,7 @@ import {
 
 import {
 	IsUser,
+	//SetCookie,
 	EmailExist,
 	UserIdExist,
 	ValidateJWT,
