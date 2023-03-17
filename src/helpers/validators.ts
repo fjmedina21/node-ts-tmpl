@@ -1,5 +1,3 @@
-import { User } from "../models";
-
 // TODO: implement personalized EMAIL validation
 /*export function IsEmail(email: string) {
 	try {
@@ -30,3 +28,5 @@ import { User } from "../models";
 		//return Promise.reject(error);
 	}
 }*/
+
+export { };

@@ -35,18 +35,18 @@ export class User extends BaseEntity {
 	@Column({ default: true, select: false })
 	isUser: boolean;
 
-	@CreateDateColumn({ update: false })
+	@CreateDateColumn({ update: false, select: false })
 	createdAt: Date;
 
-	@UpdateDateColumn()
+	@UpdateDateColumn({ select: false })
 	updatedAt: Date;
 
 	@Column({ nullable: true, select: false })
 	resetToken: string;
 
-	hashPassword(password: string): void {
+	hashPassword(password: string): string {
 		const salt = bcrypt.genSaltSync(15);
-		this.password = bcrypt.hashSync(password, salt);
+		return this.password = bcrypt.hashSync(password, salt);
 	}
 
 	comparePassword(password: string): boolean {
