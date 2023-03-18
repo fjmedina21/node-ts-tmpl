@@ -20,12 +20,8 @@ export async function SignUp(req: Request, res: Response) {
 
 		if (photoFile) {
 			await photoUpload(photoFile, "users")
-				.then(({ public_id, secure_url }) => {
-					user.photo = { public_id, secure_url }
-				})
-				.catch((reason) => {
-					throw new ErrorHandler(reason,400)
-				})
+				.then(({ public_id, secure_url }) => { user.photo = { public_id, secure_url }; })
+				.catch((reason) => { throw new ErrorHandler(reason, 400); });
 		}
 
 		await user.save();

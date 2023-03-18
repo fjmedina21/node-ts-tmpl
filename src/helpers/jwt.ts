@@ -4,7 +4,7 @@ import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { config } from "../config/index";
 import { User } from "../models/index";
 
-export function GenerateJWT( uId:string,isAdmin:boolean, isUser:boolean): Promise<unknown> {
+export function GenerateJWT(uId: string, isAdmin: boolean, isUser: boolean): Promise<unknown> {
 	return new Promise((resolve, reject) => {
 		const payload = { uId, isAdmin, isUser };
 
@@ -51,7 +51,7 @@ export async function ValidateResetJWT(resetToken: string): Promise<User> {
 	) as JwtPayload;
 
 	return await User.findOneOrFail({
-		select: ["uId","password", "resetToken"],
+		select: ["uId", "password", "resetToken"],
 		where: { email, resetToken },
 	});
 }

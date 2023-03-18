@@ -64,7 +64,7 @@ export async function EmailExist(
 		const { email } = req.body;
 		const user: User | null = await User.findOneBy({ email });
 
-		if (user) throw new ErrorHandler("Someone already has that email address. Try another one.",400);
+		if (user) throw new ErrorHandler("Someone already has that email address. Try another one.", 400);
 
 		next();
 	} catch (error: unknown) {
@@ -83,7 +83,7 @@ export async function UserIdExist(
 		const { id } = req.params;
 		const user: User | null = await User.findOneBy({ uId: id, state: true });
 
-		if (!user) throw new ErrorHandler("Create an account",400);
+		if (!user) throw new ErrorHandler("Create an account", 400);
 
 		next();
 	} catch (error: unknown) {

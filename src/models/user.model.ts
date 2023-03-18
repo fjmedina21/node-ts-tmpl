@@ -27,7 +27,7 @@ export class User extends BaseEntity {
 	password: string;
 
 	@Column({ type: "simple-json", nullable: true })
-	photo: { public_id: string, secure_url: string };
+	photo: { public_id: string, secure_url: string; };
 
 	@Column({ default: true, select: false })
 	state: boolean;

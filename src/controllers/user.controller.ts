@@ -8,7 +8,7 @@ import { ErrorHandler, GetToken, photoUpload } from "../helpers";
 
 export async function GetUsers(req: Request, res: Response) {
 	const { from = 0, limit = 20 } = req.query;
-	
+
 	try {
 		const [users, total]: [User[], number] =
 			(await User.findAndCount({
@@ -27,7 +27,7 @@ export async function GetUsers(req: Request, res: Response) {
 
 export async function GetUser(req: Request, res: Response) {
 	const { id } = req.params;
-	
+
 	try {
 		const user: User = await User.findOneByOrFail({ uId: id, state: true }) || {};
 
@@ -41,7 +41,7 @@ export async function GetUser(req: Request, res: Response) {
 export async function CreateUser(req: Request, res: Response) {
 	const { firstName, lastName, email, password, isAdmin } = req.body;
 	const photoFile = req.files?.photo as UploadedFile;
-	
+
 	try {
 		const user: User = new User();
 		user.firstName = firstName;
@@ -53,12 +53,11 @@ export async function CreateUser(req: Request, res: Response) {
 		if (photoFile) {
 			await photoUpload(photoFile, "users")
 				.then(({ public_id, secure_url }) => {
-					user.photo = { public_id, secure_url }
+					user.photo = { public_id, secure_url };
 				})
 				.catch((reason) => {
-					console.log(reason);
-					throw new ErrorHandler(reason, 400)
-				})
+					throw new ErrorHandler(reason, 400);
+				});
 		}
 
 		await user.save();

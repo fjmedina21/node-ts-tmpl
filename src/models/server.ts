@@ -40,7 +40,7 @@ export class Server {
 		this.app.use(express.urlencoded());
 		//this.app.use(express.static(path.join(__dirname, "../public")));
 		this.app.use(morgan("dev"));
-		this.app.use(fileupload({ useTempFiles: true, tempFileDir: './tmp' }))
+		this.app.use(fileupload({ useTempFiles: true, tempFileDir: './tmp' }));
 	}
 
 	private async dbConnection(): Promise<void> {
