@@ -1,22 +1,35 @@
 import { Response, Request } from "express";
+import { UploadedFile } from "express-fileupload";
+import fs from "fs-extra";
 
 import { User } from "../models";
-import { GenerateJWT, GenerateResetJWT, ValidateResetJWT, ErrorHandler } from "../helpers";
+import { GenerateJWT, GenerateResetJWT, ValidateResetJWT, ErrorHandler, photoUpload } from "../helpers";
 
 export async function SignUp(req: Request, res: Response) {
-	try {
-		const { firstName, lastName, email, password, confirmPassword } = req.body;
-		const user: User = new User();
+	const { firstName, lastName, email, password, confirmPassword } = req.body;
+	const photoFile = req.files?.photo as UploadedFile;
 
+	try {
+		const user: User = new User();
 		user.firstName = firstName;
 		user.lastName = lastName;
 		user.email = email;
+
 		if (confirmPassword !== password) throw new ErrorHandler("Passwords unmatch", 400);
 		user.hashPassword(password);
+
+		if (photoFile) {
+			await photoUpload(photoFile, "users")
+				.then(({ public_id, secure_url }) => {
+					user.photo = { public_id, secure_url }
+				})
+				.catch((reason) => {
+					throw new ErrorHandler(reason,400)
+				})
+		}
+
 		await user.save();
-
 		const token = (await GenerateJWT(user.uId, user.isAdmin, user.isUser)) as string;
-
 		return res.status(201).json({
 			result: { ok: true, user, token }
 		});
@@ -24,13 +37,15 @@ export async function SignUp(req: Request, res: Response) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
 
 		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
+	} finally {
+		if (photoFile) await fs.unlink(photoFile.tempFilePath);
 	}
 }
 
 export const LogIn = async (req: Request, res: Response) => {
-	try {
-		const { email, password } = req.body;
+	const { email, password } = req.body;
 
+	try {
 		const user: User = await User.findOneOrFail({
 			select: ["uId", "firstName", "lastName", "email", "password", "isAdmin", "isUser", "state",],
 			where: { email },
@@ -41,7 +56,6 @@ export const LogIn = async (req: Request, res: Response) => {
 		if (!(user.comparePassword(password))) throw new ErrorHandler("Your account or password is incorrect", 400);
 
 		const token = await GenerateJWT(user.uId, user.isAdmin, user.isUser) as string;
-
 		res.status(200).json({
 			result: { ok: true, user, token }
 		});
@@ -53,10 +67,10 @@ export const LogIn = async (req: Request, res: Response) => {
 };
 
 export async function ChangePassword(req: Request, res: Response) {
-	try {
-		const { id } = req.params;
-		const { currentPassword, newPassword, confirmPassword } = req.body;
+	const { id } = req.params;
+	const { currentPassword, newPassword, confirmPassword } = req.body;
 
+	try {
 		const user: User = await User.findOneOrFail({
 			select: ["password"],
 			where: { uId: id },
@@ -76,9 +90,9 @@ export async function ChangePassword(req: Request, res: Response) {
 }
 
 export async function ForgotPassword(req: Request, res: Response) {
-	try {
-		const { email } = req.body;
+	const { email } = req.body;
 
+	try {
 		const emailExist: User | null = await User.findOneBy({
 			email,
 			state: true,
@@ -109,15 +123,18 @@ export async function ForgotPassword(req: Request, res: Response) {
 }
 
 export async function ResetPassword(req: Request, res: Response) {
-	try {
-		const { newPassword, confirmPassword } = req.body;
-		const { resetToken } = req.params;
+	const { newPassword, confirmPassword } = req.body;
+	const { resetToken } = req.params;
 
+	try {
 		const user: User = await ValidateResetJWT(resetToken);
 
 		if (confirmPassword !== newPassword) throw new ErrorHandler("Password unmatch", 400);
 
-		await User.update({ uId: user.uId }, { password: user.hashPassword(confirmPassword), resetToken: "" });
+		await User.update({ uId: user.uId }, {
+			password: user.hashPassword(confirmPassword),
+			resetToken: ""
+		});
 		return res.status(200).json({
 			result: {
 				ok: true,

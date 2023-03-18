@@ -4,11 +4,13 @@ import express, { Express } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
+import fileupload from "express-fileupload";
+
 //import path from "path";
 
 import { AppDataSource } from "../config/orm.config";
 import { config } from "../config";
-import { UserRoutes, AuthRoutes, SearchRoutes,$404Route,HomeRoute } from "../routes";
+import { UserRoutes, AuthRoutes, SearchRoutes, $404Route, HomeRoute } from "../routes";
 
 export class Server {
 	private app: Express;
@@ -38,6 +40,7 @@ export class Server {
 		this.app.use(express.urlencoded());
 		//this.app.use(express.static(path.join(__dirname, "../public")));
 		this.app.use(morgan("dev"));
+		this.app.use(fileupload({ useTempFiles: true, tempFileDir: './tmp' }))
 	}
 
 	private async dbConnection(): Promise<void> {

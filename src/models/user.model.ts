@@ -14,17 +14,20 @@ export class User extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	uId: string;
 
-	@Column()
+	@Column({ length: 30 })
 	firstName: string;
 
-	@Column()
+	@Column({ length: 30 })
 	lastName: string;
 
-	@Column({ unique: true })
+	@Column({ length: 50, unique: true })
 	email: string;
 
 	@Column({ select: false })
 	password: string;
+
+	@Column({ type: "simple-json", nullable: true })
+	photo: { public_id: string, secure_url: string };
 
 	@Column({ default: true, select: false })
 	state: boolean;
@@ -41,7 +44,7 @@ export class User extends BaseEntity {
 	@UpdateDateColumn({ select: false })
 	updatedAt: Date;
 
-	@Column({ nullable: true, select: false })
+	@Column({ type: "text", nullable: true, select: false })
 	resetToken: string;
 
 	hashPassword(password: string): string {
@@ -52,14 +55,4 @@ export class User extends BaseEntity {
 	comparePassword(password: string): boolean {
 		return bcrypt.compareSync(password, this.password);
 	}
-}
-
-export interface IUser {
-	firstName: string;
-	lastName: string;
-	email: string;
-	password: string;
-	isAdmin: boolean;
-	isUser: boolean;
-	state: boolean;
 }
