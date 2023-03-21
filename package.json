@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "built": "tsc",
-    "prestart": "npm run built",
+    "build": "tsc",
+    "prestart": "npm run build",
     "start": "node dist/index.js",
     "dev": "npx ts-node-dev --respawn src/index.ts"
   },

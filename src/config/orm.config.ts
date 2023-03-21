@@ -10,5 +10,5 @@ export const AppDataSource = new DataSource({
 	password: config.DB_PASS,
 	database: config.DB_NAME,
 	entities: [User],
-	synchronize: true,
+	synchronize: true, //remove in production
 });

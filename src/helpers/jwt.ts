@@ -1,8 +1,8 @@
 import { Request } from "express";
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
-import { config } from "../config/index";
-import { User } from "../models/index";
+import { config } from "../config";
+import { User } from "../models";
 
 export function GenerateJWT(uId: string, isAdmin: boolean, isUser: boolean): Promise<unknown> {
 	return new Promise((resolve, reject) => {

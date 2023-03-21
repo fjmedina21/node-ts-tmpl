@@ -1,8 +1,10 @@
 import { v2, UploadApiResponse } from "cloudinary";
 import { UploadedFile } from "express-fileupload";
 
+import { config } from "../config";
+
 const cloudinary = v2;
-cloudinary.config("process.env.CLOUDINARY_URL");
+cloudinary.config(config.CLOUDINARY_URL);
 
 function validateFileExt(file: UploadedFile) {
     try {
@@ -15,30 +17,24 @@ function validateFileExt(file: UploadedFile) {
     }
 }
 
-export async function photoUpload(file: UploadedFile, subfolder: string | string) {
-    const result = validateFileExt(file);
-    if (result) return result;
+export async function PhotoUpload(file: UploadedFile, subfolder: string): Promise<UploadApiResponse> {
+    const error = validateFileExt(file);
+    if (error) return error;
 
     const { tempFilePath } = file;
-    const data = await cloudinary.uploader.upload(tempFilePath, { folder: `bibloslibrary/${subfolder}` });
-    return data;
+    return await cloudinary.uploader.upload(tempFilePath, { folder: `bibloslibrary/${subfolder}` });
 }
 
-export async function photoDelete(public_id: string): Promise<void | undefined> {
+export async function PhotoDelete(public_id: string): Promise<void> {
     await cloudinary.uploader.destroy(public_id)
         .catch((reason: unknown) => { return Promise.reject(reason); });
 }
 
-export async function photoUpdate(public_id: string, file: UploadedFile, subfolder: string): Promise<undefined> {
-    const result = validateFileExt(file);
-    if (result) return result;
+export async function PhotoUpdate(public_id: string, file: UploadedFile, subfolder: string): Promise<UploadApiResponse> {
+    const error = validateFileExt(file);
+    if (error) return error;
 
-    await cloudinary.uploader.destroy(public_id)
-        .then(async () => {
-            await photoUpload(file, subfolder)
-                .then((data) => { return data; })
-                .catch((reason) => { return Promise.reject(reason); });
-        })
-        .catch((reason: unknown) => { return Promise.reject(reason); });
+    await PhotoDelete(public_id);
+    return await PhotoUpload(file, subfolder);;
 
 }

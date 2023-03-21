@@ -3,7 +3,13 @@ import { UploadedFile } from "express-fileupload";
 import fs from "fs-extra";
 
 import { User } from "../models";
-import { GenerateJWT, GenerateResetJWT, ValidateResetJWT, ErrorHandler, photoUpload } from "../helpers";
+import {
+	GenerateJWT,
+	PhotoUpload,
+	ErrorHandler,
+	GenerateResetJWT,
+	ValidateResetJWT,
+} from "../helpers";
 
 export async function SignUp(req: Request, res: Response) {
 	const { firstName, lastName, email, password, confirmPassword } = req.body;
@@ -19,9 +25,9 @@ export async function SignUp(req: Request, res: Response) {
 		user.hashPassword(password);
 
 		if (photoFile) {
-			await photoUpload(photoFile, "users")
+			await PhotoUpload(photoFile, "users")
 				.then(({ public_id, secure_url }) => { user.photo = { public_id, secure_url }; })
-				.catch((reason) => { throw new ErrorHandler(reason, 400); });
+				.catch((reason) => { throw new ErrorHandler(reason, 500); });
 		}
 
 		await user.save();
@@ -43,11 +49,11 @@ export const LogIn = async (req: Request, res: Response) => {
 
 	try {
 		const user: User = await User.findOneOrFail({
-			select: ["uId", "firstName", "lastName", "email", "password", "isAdmin", "isUser", "state",],
+			select: ["uId", "firstName", "lastName", "email", "password", "photo", "isAdmin", "isUser", "state",],
 			where: { email },
 		});
 
-		if (!user.state) throw new ErrorHandler("That account doesn't exist. Enter a different account or create a new one", 400);
+		if (!user.state) throw new Error();
 
 		if (!(user.comparePassword(password))) throw new ErrorHandler("Your account or password is incorrect", 400);
 
@@ -56,9 +62,7 @@ export const LogIn = async (req: Request, res: Response) => {
 			result: { ok: true, user, token }
 		});
 	} catch (error: unknown) {
-		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
-
-		if (error instanceof Error) return res.status(400).json({ result: { ok: false, message: error.message } });
+		if (error instanceof Error) return res.status(400).json({ result: { ok: false, message: "That account doesn't exist. Enter a different account or create a new one" } });
 	}
 };
 
@@ -89,13 +93,6 @@ export async function ForgotPassword(req: Request, res: Response) {
 	const { email } = req.body;
 
 	try {
-		const emailExist: User | null = await User.findOneBy({
-			email,
-			state: true,
-		});
-
-		if (!emailExist) throw new ErrorHandler("We don't have an account linked to that email.", 400);
-
 		const user: User = await User.findOneByOrFail({ email, state: true });
 		const resetToken = (await GenerateResetJWT(email)) as string;
 		const verificationLink = `${req.protocol}://${req.header("host")}/auth/reset-password/${resetToken}`;
@@ -112,9 +109,7 @@ export async function ForgotPassword(req: Request, res: Response) {
 			},
 		});
 	} catch (error: unknown) {
-		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
-
-		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: "That account doesn't exist. Enter a different account or create a new one " } });
 	}
 }
 
@@ -124,19 +119,13 @@ export async function ResetPassword(req: Request, res: Response) {
 
 	try {
 		const user: User = await ValidateResetJWT(resetToken);
-
 		if (confirmPassword !== newPassword) throw new ErrorHandler("Password unmatch", 400);
 
 		await User.update({ uId: user.uId }, {
 			password: user.hashPassword(confirmPassword),
 			resetToken: ""
 		});
-		return res.status(200).json({
-			result: {
-				ok: true,
-				message: "Password changed",
-			},
-		});
+		return res.status(200).json({ result: { ok: true, message: "Password changed", }, });
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
 
