@@ -103,7 +103,6 @@ export async function UpdateUser(req: Request, res: Response) {
 
 export async function DeleteUser(req: Request, res: Response) {
 	const { id } = req.params;
-	const { state } = req.body;
 
 	try {
 		const { photo } = await User.findOneByOrFail({ uId: id });
@@ -111,7 +110,7 @@ export async function DeleteUser(req: Request, res: Response) {
 
 		await User.update(
 			{ uId: id },
-			{ state, isUser: false, isAdmin: false, photo: { public_id: "", secure_url: "" } }
+			{ state: false, isUser: false, isAdmin: false, photo: { public_id: "", secure_url: "" } }
 			);
 		
 			// await User.delete({ uId: id });
