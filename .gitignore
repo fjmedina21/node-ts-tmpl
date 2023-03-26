@@ -3,3 +3,4 @@ build
 src/tmp
 .env
 .vscode
+*.log

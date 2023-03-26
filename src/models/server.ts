@@ -1,14 +1,14 @@
 import "reflect-metadata";
 
-import express, { Express } from "express";
+import path from "path";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
+import express, { Express } from "express";
 import fileupload from "express-fileupload";
-import path from "path";
 
-import { AppDataSource } from "../config/orm.config";
 import { config } from "../config";
+import { AppDataSource } from "../config/datasource";
 import { UserRoutes, AuthRoutes, SearchRoutes, $404Route, HomeRoute } from "../routes";
 
 export class Server {
@@ -51,11 +51,11 @@ export class Server {
 	}
 
 	private routes(): void {
-		this.app.use(this.path.$404, $404Route);
 		this.app.use(this.path.home, HomeRoute);
 		this.app.use(this.path.auth, AuthRoutes);
 		this.app.use(this.path.users, UserRoutes);
 		this.app.use(this.path.search, SearchRoutes);
+		this.app.use(this.path.$404, $404Route);
 	}
 
 	private listen(): void {

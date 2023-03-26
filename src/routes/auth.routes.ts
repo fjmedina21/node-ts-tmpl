@@ -1,21 +1,8 @@
 import { Router } from "express";
 import { check } from "express-validator";
 
-import {
-	LogIn,
-	SignUp,
-	ResetPassword,
-	ForgotPassword,
-	ChangePassword,
-} from "../controllers";
-
-import {
-	IsUser,
-	EmailExist,
-	UserIdExist,
-	ValidateJWT,
-	ValidateFields,
-} from "../middlewares";
+import { LogIn, SignUp, ResetPassword, ForgotPassword, ChangePassword, } from "../controllers";
+import { IsUser, EmailExist, UserIdExist, ValidateJWT, ValidateFields, } from "../middlewares";
 
 const AuthRoutes = Router();
 
@@ -40,7 +27,7 @@ AuthRoutes.post(
 		EmailExist,
 		check("password", "Password must be at least 8 characters").isLength({ min: 8, }),
 		check("confirmPassword", "Password confirmation required").notEmpty(),
-		ValidateFields,
+		ValidateFields
 	],
 	SignUp
 );
@@ -53,7 +40,7 @@ AuthRoutes.put(
 		check(["currentPassword", "newPassword"], "All fields are required").notEmpty(),
 		check("newPassword", "The new password must be 8 character minimum.").isLength({ min: 8 }),
 		check("confirmPassword", "Password confirmation required").notEmpty(),
-		ValidateFields,
+		ValidateFields
 	],
 	ChangePassword
 );

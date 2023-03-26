@@ -7,7 +7,7 @@ export const config = {
 	DB_PORT: 3307,
 	DB_USER: "root",
 	DB_PASS: "",
-	DB_NAME: "api_nodets",
+	DB_NAME: "test",
 
 	JWT_SECRECT: "9%W@3s8Lh4Rn",
 	JWT_SESSION_EXPIRES_IN: "3h",

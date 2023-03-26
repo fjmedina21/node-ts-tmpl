@@ -1,22 +1,8 @@
 import { Router } from "express";
 import { check } from "express-validator";
 
-import {
-	GetUser,
-	GetUsers,
-	CreateUser,
-	UpdateUser,
-	DeleteUser,
-} from "../controllers";
-
-import {
-	IsUser,
-	IsAdmin,
-	EmailExist,
-	UserIdExist,
-	ValidateJWT,
-	ValidateFields,
-} from "../middlewares";
+import { GetUser, GetUsers, CreateUser, UpdateUser, DeleteUser, } from "../controllers";
+import { IsUser, IsAdmin, EmailExist, UserIdExist, ValidateJWT, ValidateFields, } from "../middlewares";
 
 const UserRoutes = Router();
 

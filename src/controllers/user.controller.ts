@@ -4,12 +4,7 @@ import { UploadedFile } from "express-fileupload";
 import fs from "fs-extra";
 
 import { User } from "../models";
-import {
-	GetToken,
-	PhotoDelete,
-	PhotoUpload,
-	ErrorHandler,
-} from "../helpers";
+import { GetToken, PhotoDelete, PhotoUpload, ErrorHandler, } from "../helpers";
 
 export async function GetUsers(req: Request, res: Response) {
 	const { from = 0, limit = 20 } = req.query;
@@ -74,7 +69,7 @@ export async function CreateUser(req: Request, res: Response) {
 export async function UpdateUser(req: Request, res: Response) {
 	const auth = (await GetToken(req)) as JwtPayload;
 	const { id } = req.params;
-	const { firstName, lastName, email, confirmPassword, isAdmin } = req.body;
+	const { firstName, lastName, email, confirmPassword } = req.body;
 	const photoFile = req.files?.photo as UploadedFile;
 
 
@@ -111,9 +106,9 @@ export async function DeleteUser(req: Request, res: Response) {
 		await User.update(
 			{ uId: id },
 			{ state: false, isUser: false, isAdmin: false, photo: { public_id: "", secure_url: "" } }
-			);
-		
-			// await User.delete({ uId: id });
+		);
+
+		// await User.delete({ uId: id });
 
 		return res.status(204).json();
 	} catch (error: unknown) {
