@@ -1,10 +1,9 @@
 import { Response, Request } from "express";
-import { JwtPayload } from "jsonwebtoken";
 import { UploadedFile } from "express-fileupload";
 import fs from "fs-extra";
 
 import { User } from "../models";
-import { GetToken, PhotoDelete, PhotoUpload, ErrorHandler, } from "../helpers";
+import { PhotoDelete, PhotoUpload, PhotoUpdate, ErrorHandler, } from "../helpers";
 
 export async function GetUsers(req: Request, res: Response) {
 	const { from = 0, limit = 20 } = req.query;
@@ -67,32 +66,33 @@ export async function CreateUser(req: Request, res: Response) {
 }
 
 export async function UpdateUser(req: Request, res: Response) {
-	const auth = (await GetToken(req)) as JwtPayload;
 	const { id } = req.params;
-	const { firstName, lastName, email, confirmPassword } = req.body;
+	const { confirmPassword, ...payload } = req.body;
 	const photoFile = req.files?.photo as UploadedFile;
-
 
 	try {
 		const user: User = await User.findOneOrFail({
-			select: ["firstName", "lastName", "email", "photo", "password", "isAdmin"],
+			select: ["firstName", "lastName", "email", "password"],
 			where: { uId: id },
 		});
 
-		//TODO: update user code
+		if (!user.comparePassword(confirmPassword))
+			throw new ErrorHandler("Your password is incorrect", 400);
 
+		if (photoFile) {
+			await PhotoUpdate(user.photo.public_id, photoFile, "users")
+				.then(async ({ public_id, secure_url }) => await User.update({ uId: id }, { photo: { public_id, secure_url } }))
+				.catch((reason) => { throw new Error(reason); });
+		}
 
-		if (!user.comparePassword(confirmPassword)) throw new ErrorHandler("Incorrect password", 400);
-
-		return res.status(200).json({ result: { ok: true, message: "User updated", user } });
+		await User.update({ uId: id }, payload);
+		return res.status(200).json({ result: { ok: true, message: "User updated" } });
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler)
 			return res.status(error.statusCode).json({ result: error.toJson() });
 
 		if (error instanceof Error)
 			return res.status(500).json({ result: { ok: false, message: error.message } });
-	} finally {
-		if (photoFile) await fs.unlink(photoFile.tempFilePath);
 	}
 }
 
@@ -107,8 +107,6 @@ export async function DeleteUser(req: Request, res: Response) {
 			{ uId: id },
 			{ state: false, isUser: false, isAdmin: false, photo: { public_id: "", secure_url: "" } }
 		);
-
-		// await User.delete({ uId: id });
 
 		return res.status(204).json();
 	} catch (error: unknown) {

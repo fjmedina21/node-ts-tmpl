@@ -30,19 +30,19 @@ export const LogIn = async (req: Request, res: Response) => {
 	const { email, password } = req.body;
 
 	try {
-		const user: User = await User.findOneOrFail({
-			select: ["uId", "email", "password", "isAdmin", "isUser", "state",],
-			where: { email }
+		const user: User | null = await User.findOne({
+			select: ["uId", "firstName", "lastName", "email", "password", "isAdmin", "isUser", "state"], where: { email }
 		});
 
-		if (!user.state) throw new ErrorHandler("That account doesn't exist. Enter a different account or create a new one", 400);
+		if (!user || !user.state) throw new ErrorHandler("That account doesn't exist. Enter a different account or create a new one", 400);
 
-		if (!(user.comparePassword(password))) throw new ErrorHandler("Your account or password is incorrect", 400);
+		const { password, createdAt, updatedAt, resetToken, state, isAdmin, isUser, ...info } = user;
 
-		const token = await GenerateJWT(user.uId, user.isAdmin, user.isUser) as string;
+		if (!user.comparePassword(req.body.password)) throw new ErrorHandler("Your account or password is incorrect", 400);
 
+		const token = (await GenerateJWT(user.uId, isAdmin, isUser)) as string;
 		res.status(200).json({
-			result: { ok: true, message: "logged in", token }
+			result: { ok: true, user: info, token }
 		});
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });

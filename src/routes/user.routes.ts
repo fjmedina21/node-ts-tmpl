@@ -28,18 +28,20 @@ UserRoutes.post(
 );
 
 UserRoutes.patch(
-	"/user/:id",
+	"/:id",
 	[ValidateJWT, IsUser, UserIdExist,
 		check(["firstName", "lastName", "email"]).trim(),
-		//check("email","Invalid email").isEmail(),
-		EmailExist,
+		check("firstName", "firstName required").notEmpty(),
+		check("lastName", "lastName required").notEmpty(),
+		check("email", "email required").notEmpty(),
+		check("email","Invalid email").isEmail(),
 		check("confirmPassword", "Password confirmatin required").notEmpty(),
 		ValidateFields],
 	UpdateUser
 );
 
 UserRoutes.delete(
-	"/user/:id",
+	"/:id",
 	[ValidateJWT, IsAdmin, UserIdExist, ValidateFields],
 	DeleteUser
 );

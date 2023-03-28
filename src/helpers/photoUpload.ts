@@ -1,9 +1,8 @@
-import { v2, UploadApiResponse } from "cloudinary";
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { UploadedFile } from "express-fileupload";
 
 import { config } from "../config";
 
-const cloudinary = v2;
 cloudinary.config(config.CLOUDINARY_URL);
 
 function validateFileExt(file: UploadedFile) {
@@ -35,6 +34,5 @@ export async function PhotoUpdate(public_id: string, file: UploadedFile, subfold
     if (error) return error;
 
     await PhotoDelete(public_id);
-    return await PhotoUpload(file, subfolder);;
-
+    return await PhotoUpload(file, subfolder);
 }
