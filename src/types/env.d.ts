@@ -12,6 +12,7 @@ declare global {
 			JWT_SESSION_EXPIRES_IN: string;
 			JWT_RESET_TOKEN_SECRECT: string;
 			JWT_RESET_TOKEN_EXPIRES_IN: string;
+			
 			CLOUDINARY_URL: string;
 		}
 	}

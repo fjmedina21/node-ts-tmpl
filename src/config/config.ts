@@ -13,6 +13,7 @@ export const config = {
 	JWT_SESSION_EXPIRES_IN: "3h",
 	JWT_RESET_TOKEN_SECRECT: "3A8f^ZRns398",
 	JWT_RESET_TOKEN_EXPIRES_IN: "10m",
+	
 	CLOUDINARY_URL: "cloudinary://468217321751245:TOQrIGdU6h6RmaTbdH41FqXFagg@fjmedina"
 };
 
