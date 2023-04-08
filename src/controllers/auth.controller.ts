@@ -14,6 +14,7 @@ export async function SignUp(req: Request, res: Response) {
 		user.email = email;
 		if (confirmPassword !== password) throw new ErrorHandler("Passwords unmatch", 400);
 		user.hashPassword(password);
+		user.photo = { public_id: "", secure_url: "" };
 		await user.save();
 
 		return res.status(201).json({
@@ -36,13 +37,13 @@ export const LogIn = async (req: Request, res: Response) => {
 
 		if (!user || !user.state) throw new ErrorHandler("That account doesn't exist. Enter a different account or create a new one", 400);
 
-		const { password, createdAt, updatedAt, resetToken, state, isAdmin, isUser, ...info } = user;
+		const { password, state, isAdmin, isUser, ...data } = user;
 
 		if (!user.comparePassword(req.body.password)) throw new ErrorHandler("Your account or password is incorrect", 400);
 
-		const token = (await GenerateJWT(user.uId, isAdmin, isUser)) as string;
+		const token = (await GenerateJWT(data.uId, isAdmin, isUser)) as string;
 		res.status(200).json({
-			result: { ok: true, user: info, token }
+			result: { ok: true, user: data, token }
 		});
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
@@ -89,12 +90,12 @@ export async function ForgotPassword(req: Request, res: Response) {
 		return res.status(200).json({
 			result: {
 				ok: true,
-				message: "reset link send",
+				message: `Reset link send to ${email}`,
 				verificationLink,
 			},
 		});
 	} catch (error: unknown) {
-		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: "That account doesn't exist. Enter a different account or create a new one " } });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: "That account doesn't exist. Try another or create a new one " } });
 	}
 }
 
@@ -103,14 +104,16 @@ export async function ResetPassword(req: Request, res: Response) {
 	const { resetToken } = req.params;
 
 	try {
-		const user: User = await ValidateResetJWT(resetToken);
+		const user: User | null = await ValidateResetJWT(resetToken);
 		if (confirmPassword !== newPassword) throw new ErrorHandler("Password unmatch", 400);
+		else if (!user) throw new ErrorHandler("Invalid token", 400);
 
 		await User.update({ uId: user.uId }, {
-			password: user.hashPassword(confirmPassword),
+			password: user.hashPassword(newPassword),
 			resetToken: ""
 		});
-		return res.status(200).json({ result: { ok: true, message: "Password changed", }, });
+
+		return res.status(200).json({ result: { ok: true, message: "Password reset" }, });
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
 

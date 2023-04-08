@@ -36,10 +36,8 @@ AuthRoutes.put(
 	"/change-password/:id",
 	[
 		ValidateJWT, IsUser, UserIdExist,
-		check(["currentPassword", "newPassword"]).trim(),
-		check(["currentPassword", "newPassword"], "All fields are required").notEmpty(),
+		check(["currentPassword", "newPassword","confirmPassword"], "All fields are required").notEmpty(),
 		check("newPassword", "The new password must be 8 character minimum.").isLength({ min: 8 }),
-		check("confirmPassword", "Password confirmation required").notEmpty(),
 		ValidateFields
 	],
 	ChangePassword

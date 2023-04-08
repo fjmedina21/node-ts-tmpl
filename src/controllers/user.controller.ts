@@ -29,8 +29,9 @@ export async function GetUser(req: Request, res: Response) {
 
 	try {
 		const user: User = await User.findOneByOrFail({ uId: id, state: true }) || {};
+		const { photo, ...data } = user;
 
-		return res.status(200).json({ result: { ok: true, user } });
+		return res.status(200).json({ result: { ok: true, user: data } });
 	} catch (error: unknown) {
 		if (error instanceof Error)
 			return res.status(500).json({ result: { ok: false, message: error.message } });
@@ -48,6 +49,7 @@ export async function CreateUser(req: Request, res: Response) {
 		user.email = email;
 		user.isAdmin = Boolean(isAdmin);
 		user.hashPassword(password);
+		user.photo = { public_id: "", secure_url: "" };
 
 		if (photoFile) {
 			await PhotoUpload(photoFile, "users")
@@ -56,7 +58,7 @@ export async function CreateUser(req: Request, res: Response) {
 		}
 
 		await user.save();
-		return res.status(201).json({ result: { ok: true, user }, });
+		return res.status(201).json({ result: { ok: true, message:"User created" }, });
 	} catch (error: unknown) {
 		if (error instanceof Error)
 			return res.status(500).json({ result: { ok: false, message: error.message } });

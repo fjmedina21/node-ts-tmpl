@@ -29,7 +29,7 @@ export async function IsAdmin(req: Request, res: Response, next: NextFunction) {
 	try {
 		const { isAdmin } = (await GetToken(req)) as JwtPayload;
 
-		if (!isAdmin) throw new ErrorHandler("Need ADMIN access",403);
+		if (!isAdmin) throw new ErrorHandler("Need ADMIN access", 403);
 
 		next();
 	} catch (error: unknown) {
@@ -49,7 +49,7 @@ export async function IsUser(
 
 		if (!isUser) throw new ErrorHandler("login or signup", 400);
 
-		if (isUser) next();
+		next();
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: { ok: false, message: error.message } });
 
