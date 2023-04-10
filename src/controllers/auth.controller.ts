@@ -17,9 +17,7 @@ export async function SignUp(req: Request, res: Response) {
 		user.photo = { public_id: "", secure_url: "" };
 		await user.save();
 
-		return res.status(201).json({
-			result: { ok: true, message: "signed up" }
-		});
+		return res.status(201).json({ result: { ok: true, message: "signed up" } });
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
 
