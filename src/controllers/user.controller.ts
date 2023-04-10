@@ -78,8 +78,7 @@ export async function UpdateUser(req: Request, res: Response) {
 			where: { uId: id },
 		});
 
-		if (!user.comparePassword(confirmPassword))
-			throw new ErrorHandler("Your password is incorrect", 400);
+		if (!user.comparePassword(confirmPassword))	throw new ErrorHandler("Your password is incorrect", 400);
 
 		if (photoFile) {
 			await PhotoUpdate(user.photo.public_id, photoFile, "users")
