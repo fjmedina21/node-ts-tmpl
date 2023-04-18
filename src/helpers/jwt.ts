@@ -5,11 +5,12 @@ import { config } from "../config";
 import { User } from "../models";
 
 export function GenerateJWT(uId: string, isAdmin: boolean, isUser: boolean): Promise<unknown> {
+	
 	return new Promise((resolve, reject) => {
 		const payload = { uId, isAdmin, isUser };
 
-		const options: SignOptions = {
-			expiresIn: config.JWT_SESSION_EXPIRES_IN,
+		const options: SignOptions = { 
+			expiresIn: config.JWT_SESSION_EXPIRES_IN 
 		};
 
 		jwt.sign(
@@ -22,9 +23,11 @@ export function GenerateJWT(uId: string, isAdmin: boolean, isUser: boolean): Pro
 			}
 		);
 	});
+
 }
 
 export function GenerateResetJWT(email: string): Promise<unknown> {
+	
 	return new Promise((resolve, reject) => {
 		const payload = { email };
 
@@ -42,13 +45,11 @@ export function GenerateResetJWT(email: string): Promise<unknown> {
 			}
 		);
 	});
+
 }
 
 export async function ValidateResetJWT(resetToken: string): Promise<User | null> {
-	const { email } = jwt.verify(
-		resetToken,
-		config.JWT_RESET_TOKEN_SECRECT
-	) as JwtPayload;
+	const { email } = jwt.verify( resetToken, config.JWT_RESET_TOKEN_SECRECT ) as JwtPayload;
 
 	return await User.findOne({
 		select: ["uId", "password", "resetToken"],
@@ -56,10 +57,7 @@ export async function ValidateResetJWT(resetToken: string): Promise<User | null>
 	});
 }
 
-export async function GetToken(
-	req: Request
-): Promise<string | jwt.JwtPayload | undefined> {
+export async function GetToken(	req: Request): Promise<string | jwt.JwtPayload | undefined> {
 	const token: string | undefined = req.header("auth");
-
 	if (token) return jwt.verify(token, config.JWT_SECRECT);
 }

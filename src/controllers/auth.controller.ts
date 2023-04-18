@@ -12,12 +12,12 @@ export async function SignUp(req: Request, res: Response) {
 		user.firstName = firstName;
 		user.lastName = lastName;
 		user.email = email;
-		if (confirmPassword !== password) throw new ErrorHandler("Passwords unmatch", 400);
+		if (confirmPassword !== password) throw new ErrorHandler("Contraseñas no coinciden", 400);
 		user.hashPassword(password);
 		user.photo = { public_id: "", secure_url: "" };
 		await user.save();
 
-		return res.status(201).json({ result: { ok: true, message: "signed up" } });
+		return res.status(201).json({ result: { ok: true } });
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
 
@@ -30,19 +30,17 @@ export const LogIn = async (req: Request, res: Response) => {
 
 	try {
 		const user: User | null = await User.findOne({
-			select: ["uId", "firstName", "lastName", "email", "password", "isAdmin", "isUser", "state"], where: { email }
+			select: ["uId", "firstName", "lastName", "email", "photo", "password", "isAdmin", "isUser", "state"], where: { email }
 		});
 
-		if (!user || !user.state) throw new ErrorHandler("That account doesn't exist. Enter a different account or create a new one", 400);
+		if (!user || !user.state) throw new ErrorHandler("Esta cuenta no esta registrada. Ingresa otra diferente o crea una nueva", 400);
 
 		const { password, state, isAdmin, isUser, ...data } = user;
 
-		if (!user.comparePassword(req.body.password)) throw new ErrorHandler("Your account or password is incorrect", 400);
+		if (!user.comparePassword(req.body.password)) throw new ErrorHandler("Credenciales incorrectas", 400);
 
 		const token = (await GenerateJWT(data.uId, isAdmin, isUser)) as string;
-		res.status(200).json({
-			result: { ok: true, user: data, token }
-		});
+		res.status(200).json({ result: { ok: true, user: data, token } });
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
 
@@ -60,12 +58,12 @@ export async function ChangePassword(req: Request, res: Response) {
 			where: { uId: id },
 		});
 
-		if (!user.comparePassword(currentPassword)) throw new ErrorHandler("Incorrect current password", 400);
-		if (user.comparePassword(newPassword)) throw new ErrorHandler("New password can't be the same", 400);
-		if (confirmPassword !== newPassword) throw new ErrorHandler("Passwords unmatch", 400);
+		if (!user.comparePassword(currentPassword)) throw new ErrorHandler("Contraseña actual incorrecta", 400);
+		if (user.comparePassword(newPassword)) throw new ErrorHandler("Nueva contraseña debe ser diferente", 400);
+		if (confirmPassword !== newPassword) throw new ErrorHandler("Contraseñas no coinciden", 400);
 
-		await User.update({ uId: id }, { password: user.hashPassword(confirmPassword) });
-		return res.status(200).json({ result: { ok: true, message: "Password updated" } });
+		await User.update({ uId: id }, { password: user.hashPassword(newPassword) });
+		return res.status(200).json({ result: { ok: true, message: "Contraseña actualizada" } });
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
 
@@ -79,7 +77,7 @@ export async function ForgotPassword(req: Request, res: Response) {
 	try {
 		const user: User = await User.findOneByOrFail({ email, state: true });
 		const resetToken = (await GenerateResetJWT(email)) as string;
-		const verificationLink = `${req.protocol}://${req.header("host")}/auth/reset-password/${resetToken}`;
+		const passwordRecoverLink = `${req.protocol}://${req.header("host")}/auth/reset-password/${resetToken}`;
 
 		await User.update({ uId: user.uId }, { resetToken });
 
@@ -88,12 +86,12 @@ export async function ForgotPassword(req: Request, res: Response) {
 		return res.status(200).json({
 			result: {
 				ok: true,
-				message: `Reset link send to ${email}`,
-				verificationLink,
+				message: `Enlace de recuperación enviado a ${email}`,
+				passwordRecoverLink,
 			},
 		});
 	} catch (error: unknown) {
-		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: "That account doesn't exist. Try another or create a new one " } });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: "Esta cuenta no esta registrada." } });
 	}
 }
 
@@ -103,15 +101,16 @@ export async function ResetPassword(req: Request, res: Response) {
 
 	try {
 		const user: User | null = await ValidateResetJWT(resetToken);
-		if (confirmPassword !== newPassword) throw new ErrorHandler("Password unmatch", 400);
-		else if (!user) throw new ErrorHandler("Invalid token", 400);
+
+		if (confirmPassword !== newPassword) throw new ErrorHandler("Contraseñas no coinciden", 400);
+		else if (!user) throw new ErrorHandler("Enlace inválido", 400);
 
 		await User.update({ uId: user.uId }, {
 			password: user.hashPassword(newPassword),
 			resetToken: ""
 		});
 
-		return res.status(200).json({ result: { ok: true, message: "Password reset" }, });
+		return res.status(200).json({ result: { ok: true, message: "Contraseña restablecida" }, });
 	} catch (error: unknown) {
 		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
 

@@ -10,8 +10,9 @@ AuthRoutes.post(
 	"/login",
 	[
 		check(["email", "password"]).trim(),
-		check("email", "Please enter a valid email.").isEmail(),
-		check("password", "Your password must be at least 8 characters.").isLength({ min: 8, }),
+		check("email", "Correo Electrónico requerido").notEmpty(),
+		check("email", "Por favor ingrese un correo electrónico válido").isEmail(),
+		check("password", "La contraseña debe tener mínimo 8 caracteres").isLength({ min: 8, }),
 		ValidateFields,
 	],
 	LogIn
@@ -21,23 +22,23 @@ AuthRoutes.post(
 	"/signup",
 	[
 		check(["firstName", "lastName", "email", "password"]).trim(),
-		check("firstName", "firstName required").notEmpty(),
-		check("lastName", "lastName required").notEmpty(),
-		check("email", "Invalid email").isEmail(),
+		check("firstName", "Nombre/s requerido").notEmpty(),
+		check("lastName", "Apellido/s requerido").notEmpty(),
+		check("email", "Correo Electrónico inválido").isEmail(),
 		EmailExist,
-		check("password", "Password must be at least 8 characters").isLength({ min: 8, }),
-		check("confirmPassword", "Password confirmation required").notEmpty(),
+		check("password", "La contraseña debe tener mínimo 8 caracteres").isLength({ min: 8, }),
+		check("confirmPassword", "Contraseña de confirmación requerida").notEmpty(),
 		ValidateFields
 	],
 	SignUp
 );
 
-AuthRoutes.put(
+AuthRoutes.patch(
 	"/change-password/:id",
 	[
 		ValidateJWT, IsUser, UserIdExist,
-		check(["currentPassword", "newPassword","confirmPassword"], "All fields are required").notEmpty(),
-		check("newPassword", "The new password must be 8 character minimum.").isLength({ min: 8 }),
+		check(["currentPassword", "newPassword","confirmPassword"], "Todos los campos son requeridos").notEmpty(),
+		check("newPassword", "La contraseña debe tener mínimo 8 caracteres").isLength({ min: 8 }),
 		ValidateFields
 	],
 	ChangePassword
@@ -46,8 +47,8 @@ AuthRoutes.put(
 AuthRoutes.post(
 	"/forgot-password",
 	[
-		check("email", "Email required").notEmpty(),
-		check("email", "Invalid email").isEmail(),
+		check("email", "Correo Electrónico requerido").notEmpty(),
+		check("email", "Correo Electrónico inválido").isEmail(),
 		ValidateFields,
 	],
 	ForgotPassword
@@ -56,8 +57,8 @@ AuthRoutes.post(
 AuthRoutes.put(
 	"/reset-password/:resetToken",
 	[
-		check(["newPassword", "confirmPassword"], "All fields are required").notEmpty(),
-		check("newPassword", "The new password must be 8 character minimum.").isLength({ min: 8 }),
+		check(["newPassword", "confirmPassword"], "Todos los campos son requeridos").notEmpty(),
+		check("newPassword", "La nueva contraseña debe tener mínimo 8 caracteres").isLength({ min: 8 }),
 		ValidateFields,
 	],
 	ResetPassword

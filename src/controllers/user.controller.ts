@@ -10,12 +10,12 @@ export async function GetUsers(req: Request, res: Response) {
 
 	try {
 		const [users, total]: [User[], number] =
-			(await User.findAndCount({
+			await User.findAndCount({
 				where: { state: true },
 				order: { updatedAt: "DESC", createdAt: "DESC" },
 				skip: Number(from),
 				take: Number(limit),
-			})) || [];
+			}) || [];
 
 		return res.status(200).json({ result: { ok: true, total, users } });
 	} catch (error: unknown) {
@@ -29,12 +29,10 @@ export async function GetUser(req: Request, res: Response) {
 
 	try {
 		const user: User = await User.findOneByOrFail({ uId: id, state: true }) || {};
-		const { photo, ...data } = user;
 
-		return res.status(200).json({ result: { ok: true, user: data } });
+		return res.status(200).json({ result: { ok: true, user } });
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			return res.status(500).json({ result: { ok: false, message: error.message } });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	}
 }
 
@@ -49,19 +47,19 @@ export async function CreateUser(req: Request, res: Response) {
 		user.email = email;
 		user.isAdmin = Boolean(isAdmin);
 		user.hashPassword(password);
-		user.photo = { public_id: "", secure_url: "" };
 
 		if (photoFile) {
 			await PhotoUpload(photoFile, "users")
 				.then(({ public_id, secure_url }) => { user.photo = { public_id, secure_url }; })
 				.catch((reason) => { throw new Error(reason); });
+		} else {
+			user.photo = { public_id: "", secure_url: "" };
 		}
 
 		await user.save();
-		return res.status(201).json({ result: { ok: true, message:"User created" }, });
+		return res.status(201).json({ result: { ok: true }, });
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			return res.status(500).json({ result: { ok: false, message: error.message } });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	} finally {
 		if (photoFile) await fs.unlink(photoFile.tempFilePath);
 	}
@@ -74,26 +72,29 @@ export async function UpdateUser(req: Request, res: Response) {
 
 	try {
 		const user: User = await User.findOneOrFail({
-			select: ["firstName", "lastName", "email", "password"],
+			select: ["firstName", "lastName", "photo", "email", "password"],
 			where: { uId: id },
 		});
 
-		if (!user.comparePassword(confirmPassword))	throw new ErrorHandler("Your password is incorrect", 400);
+		if (!user.comparePassword(confirmPassword)) throw new ErrorHandler("Contraseña incorrecta", 400);
 
 		if (photoFile) {
 			await PhotoUpdate(user.photo.public_id, photoFile, "users")
-				.then(async ({ public_id, secure_url }) => await User.update({ uId: id }, { photo: { public_id, secure_url } }))
-				.catch((reason) => { throw new Error(reason); });
+				.then(
+					async ({ public_id, secure_url }) => await User.update({ uId: id }, { photo: { public_id, secure_url } }))
+				.catch((reason: ErrorHandler) => {
+					throw new ErrorHandler(reason.message, reason.statusCode);
+				});
 		}
 
 		await User.update({ uId: id }, payload);
-		return res.status(200).json({ result: { ok: true, message: "User updated" } });
+		return res.status(200).json({ result: { ok: true } });
 	} catch (error: unknown) {
-		if (error instanceof ErrorHandler)
-			return res.status(error.statusCode).json({ result: error.toJson() });
+		if (error instanceof ErrorHandler) return res.status(error.statusCode).json({ result: error.toJson() });
 
-		if (error instanceof Error)
-			return res.status(500).json({ result: { ok: false, message: error.message } });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
+	} finally {
+		if (photoFile) await fs.unlink(photoFile.tempFilePath);
 	}
 }
 
@@ -102,16 +103,14 @@ export async function DeleteUser(req: Request, res: Response) {
 
 	try {
 		const { photo } = await User.findOneByOrFail({ uId: id });
-		if (photo) await PhotoDelete(photo.public_id);
+		if (photo.public_id) await PhotoDelete(photo.public_id);
 
-		await User.update(
-			{ uId: id },
-			{ state: false, isUser: false, isAdmin: false, photo: { public_id: "", secure_url: "" } }
+		await User.update({ uId: id },
+			{ state: false, photo: { public_id: "", secure_url: "" } }
 		);
 
-		return res.status(204).json();
+		return res.status(200).json({ result: { ok: true } });
 	} catch (error: unknown) {
-		if (error instanceof Error)
-			return res.status(500).json({ result: { ok: false, message: error.message } });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false } });
 	}
 }

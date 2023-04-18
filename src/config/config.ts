@@ -1,4 +1,4 @@
-import "dotenv/config";
+import dotenv from  "dotenv/config";
 
 export const config = {
 	DEV_PORT: 8080,
@@ -14,7 +14,9 @@ export const config = {
 	JWT_RESET_TOKEN_SECRECT: "3A8f^ZRns398",
 	JWT_RESET_TOKEN_EXPIRES_IN: "5m",
 	
-	CLOUDINARY_URL: "cloudinary://468217321751245:TOQrIGdU6h6RmaTbdH41FqXFagg@fjmedina"
+	CLOUDINARY_NAME : "fjmedina",
+	CLOUDINARY_SECRET : "TOQrIGdU6h6RmaTbdH41FqXFagg",
+	CLOUDINARY_KEY : "468217321751245"
 };
 
 export { };

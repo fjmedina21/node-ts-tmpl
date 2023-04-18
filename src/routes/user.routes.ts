@@ -18,11 +18,11 @@ UserRoutes.post(
 	"/",
 	[ValidateJWT, IsAdmin,
 		check(["firstName", "lastName", "email", "password"]).trim(),
-		check("firstName", "firstName required").notEmpty(),
-		check("lastName", "lastName required").notEmpty(),
-		check("email", "Invalid email").isEmail(),
+		check("firstName", "Nombre/s requerido").notEmpty(),
+		check("lastName", "Apellido/s requerido").notEmpty(),
+		check("email", "Correo Electrónico inválido").isEmail(),
 		EmailExist,
-		check("password", "Password must be at least 8 characters").isLength({ min: 8, }),
+		check("password", "La contraseña debe tener mínimo 8 caracteres").isLength({ min: 8, }),
 		ValidateFields],
 	CreateUser
 );
@@ -31,11 +31,11 @@ UserRoutes.patch(
 	"/:id",
 	[ValidateJWT, IsUser, UserIdExist,
 		check(["firstName", "lastName", "email"]).trim(),
-		check("firstName", "firstName required").notEmpty(),
-		check("lastName", "lastName required").notEmpty(),
-		check("email", "email required").notEmpty(),
-		check("email","Invalid email").isEmail(),
-		check("confirmPassword", "Password confirmatin required").notEmpty(),
+		check("firstName", "Nombre/s requerido").notEmpty(),
+		check("lastName", "Apellido/s requerido").notEmpty(),
+		check("email", "Correo Electrónico requerido").notEmpty(),
+		check("email","Correo Electrónico inválido").isEmail(),
+		check("confirmPassword", "Contraseña de confirmación requerida").notEmpty(),
 		ValidateFields],
 	UpdateUser
 );
