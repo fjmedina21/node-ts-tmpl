@@ -2,6 +2,7 @@ declare global {
 	namespace NodeJS {
 		interface ProcessEnv {
 			DEV_PORT: number;
+			
 			DB_PORT: number;
 			DB_HOST: string;
 			DB_USER: string;
@@ -12,8 +13,10 @@ declare global {
 			JWT_SESSION_EXPIRES_IN: string;
 			JWT_RESET_TOKEN_SECRECT: string;
 			JWT_RESET_TOKEN_EXPIRES_IN: string;
-			
-			CLOUDINARY_URL: string;
+
+			CLOUDINARY_NAME: string,
+			CLOUDINARY_SECRET: string,
+			CLOUDINARY_KEY: string;
 		}
 	}
 }

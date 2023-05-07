@@ -10,7 +10,7 @@ export const AppDataSource = new DataSource({
 	username: config.DB_USER,
 	password: config.DB_PASS,
 	database: config.DB_NAME,
-	logging: ["error"],
+	logging: ["error", "warn"],
 	logger: "file",
 	entities: [User],
 	synchronize: true, //remove in prod

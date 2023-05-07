@@ -1,22 +1,23 @@
-import dotenv from  "dotenv/config";
+import dotenv from "dotenv/config";
+dotenv;
 
 export const config = {
-	DEV_PORT: 8080,
+	DEV_PORT: Number(process.env.DEV_PORT),
 
-	DB_HOST: "localhost",
-	DB_PORT: 3307,
-	DB_USER: "root",
-	DB_PASS: "",
-	DB_NAME: "test",
+	DB_HOST: process.env.DB_HOST,
+	DB_PORT: Number(process.env.DB_PORT),
+	DB_USER: process.env.DB_USER,
+	DB_PASS: process.env.DB_PASS,
+	DB_NAME: process.env.DB_NAME,
 
 	JWT_SECRECT: "9%W@3s8Lh4Rn",
-	JWT_SESSION_EXPIRES_IN: "3h",
+	JWT_SESSION_EXPIRES_IN: process.env.JWT_SESSION_EXPIRES_IN,
 	JWT_RESET_TOKEN_SECRECT: "3A8f^ZRns398",
-	JWT_RESET_TOKEN_EXPIRES_IN: "5m",
-	
-	CLOUDINARY_NAME : "fjmedina",
-	CLOUDINARY_SECRET : "TOQrIGdU6h6RmaTbdH41FqXFagg",
-	CLOUDINARY_KEY : "468217321751245"
+	JWT_RESET_TOKEN_EXPIRES_IN: process.env.JWT_RESET_TOKEN_EXPIRES_IN,
+
+	CLOUDINARY_NAME: process.env.CLOUDINARY_NAME,
+	CLOUDINARY_SECRET: process.env.CLOUDINARY_SECRET,
+	CLOUDINARY_KEY: process.env.CLOUDINARY_KEY
 };
 
 export { };

@@ -38,7 +38,7 @@ export async function GetUser(req: Request, res: Response) {
 
 export async function CreateUser(req: Request, res: Response) {
 	const { firstName, lastName, email, password, isAdmin } = req.body;
-	const photoFile = req.files?.photo as UploadedFile;
+	const file = req.files?.photo as UploadedFile;
 
 	try {
 		const user: User = new User();
@@ -48,8 +48,8 @@ export async function CreateUser(req: Request, res: Response) {
 		user.isAdmin = Boolean(isAdmin);
 		user.hashPassword(password);
 
-		if (photoFile) {
-			await PhotoUpload(photoFile, "users")
+		if (file) {
+			await PhotoUpload(file, "users")
 				.then(({ public_id, secure_url }) => { user.photo = { public_id, secure_url }; })
 				.catch((reason) => { throw new Error(reason); });
 		} else {
@@ -61,14 +61,14 @@ export async function CreateUser(req: Request, res: Response) {
 	} catch (error: unknown) {
 		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	} finally {
-		if (photoFile) await fs.unlink(photoFile.tempFilePath);
+		if (file) await fs.unlink(file.tempFilePath);
 	}
 }
 
 export async function UpdateUser(req: Request, res: Response) {
 	const { id } = req.params;
-	const { confirmPassword, ...payload } = req.body;
-	const photoFile = req.files?.photo as UploadedFile;
+	const { confirmPassword, photo, ...payload } = req.body;
+	const file = req.files?.photo as UploadedFile;
 
 	try {
 		const user: User = await User.findOneOrFail({
@@ -78,8 +78,8 @@ export async function UpdateUser(req: Request, res: Response) {
 
 		if (!user.comparePassword(confirmPassword)) throw new ErrorHandler("Contraseña incorrecta", 400);
 
-		if (photoFile) {
-			await PhotoUpdate(user.photo.public_id, photoFile, "users")
+		if (file) {
+			await PhotoUpdate(user.photo.public_id, file, "users")
 				.then(
 					async ({ public_id, secure_url }) => await User.update({ uId: id }, { photo: { public_id, secure_url } }))
 				.catch((reason: ErrorHandler) => {
@@ -94,7 +94,7 @@ export async function UpdateUser(req: Request, res: Response) {
 
 		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: error.message } });
 	} finally {
-		if (photoFile) await fs.unlink(photoFile.tempFilePath);
+		if (file) await fs.unlink(file.tempFilePath);
 	}
 }
 

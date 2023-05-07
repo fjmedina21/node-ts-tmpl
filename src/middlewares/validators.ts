@@ -9,7 +9,7 @@ export async function ValidateJWT(req: Request, res: Response, next: NextFunctio
 		const { uId } = (await GetToken(req)) as JwtPayload;
 		const userExist: User | null = await User.findOneBy({ uId, state: true });
 
-		if (!userExist) throw new ErrorHandler("Inicia sesión o Registrate", 400);
+		if (!userExist) throw new ErrorHandler("Iniciar sesión - Crear cuenta", 400);
 
 		next();
 	} catch (error: unknown) {
@@ -37,7 +37,7 @@ export async function IsUser(req: Request, res: Response, next: NextFunction) {
 	try {
 		const { isUser } = (await GetToken(req)) as JwtPayload;
 
-		if (!isUser) throw new ErrorHandler("Inicia sesión o Registrate", 400);
+		if (!isUser) throw new ErrorHandler("Iniciar sesión - Crear cuenta", 400);
 
 		next();
 	} catch (error: unknown) {

@@ -11,7 +11,7 @@ export async function SignUp(req: Request, res: Response) {
 
 		user.firstName = firstName;
 		user.lastName = lastName;
-		user.email = email;
+		user.email = String(email).toLowerCase();
 		if (confirmPassword !== password) throw new ErrorHandler("Contraseñas no coinciden", 400);
 		user.hashPassword(password);
 		user.photo = { public_id: "", secure_url: "" };
@@ -27,10 +27,11 @@ export async function SignUp(req: Request, res: Response) {
 
 export const LogIn = async (req: Request, res: Response) => {
 	const { email } = req.body;
+	const normalizedEmail = String(email).toLowerCase();
 
 	try {
 		const user: User | null = await User.findOne({
-			select: ["uId", "firstName", "lastName", "email", "photo", "password", "isAdmin", "isUser", "state"], where: { email }
+			select: ["uId", "firstName", "lastName", "email", "photo", "password", "isAdmin", "isUser", "state"], where: { email: normalizedEmail }
 		});
 
 		if (!user || !user.state) throw new ErrorHandler("Esta cuenta no esta registrada. Ingresa otra diferente o crea una nueva", 400);
@@ -91,7 +92,7 @@ export async function ForgotPassword(req: Request, res: Response) {
 			},
 		});
 	} catch (error: unknown) {
-		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: "Esta cuenta no esta registrada." } });
+		if (error instanceof Error) return res.status(500).json({ result: { ok: false, message: "Lo sentimos pero esta cuenta no esta registrada." } });
 	}
 }
 

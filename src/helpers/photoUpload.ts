@@ -8,7 +8,7 @@ cloudinary.config({
     cloud_name: config.CLOUDINARY_NAME,
     api_key: config.CLOUDINARY_KEY,
     api_secret: config.CLOUDINARY_SECRET,
-    secure: true
+    //secure: true
 });
 
 function validateFileExt(file: UploadedFile) {
@@ -16,7 +16,7 @@ function validateFileExt(file: UploadedFile) {
         const validExtensions = ["jpg", "jpeg", "webp", "png", "svg"];
         const [, ext] = file.name.split('.');
 
-        if (!validExtensions.includes(ext.toLocaleLowerCase())) throw new ErrorHandler("Tipo de archivo no soportado", 400);
+        if (!validExtensions.includes(ext.toLocaleLowerCase())) throw new ErrorHandler("Tipo de archivo no válido.", 400);
     } catch (error: unknown) {
         if (error instanceof ErrorHandler) return Promise.reject(error);
     }
@@ -27,7 +27,7 @@ export async function PhotoUpload(file: UploadedFile, subfolder: string): Promis
     if (error) return error;
 
     const { tempFilePath } = file;
-    return await cloudinary.uploader.upload(tempFilePath, { folder: `bibloslibrary/${subfolder}` });
+    return await cloudinary.uploader.upload(tempFilePath, { folder: `typeorm/${subfolder}` });
 }
 
 export async function PhotoDelete(public_id: string): Promise<void> {

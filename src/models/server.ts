@@ -7,8 +7,7 @@ import helmet from "helmet";
 import express, { Express } from "express";
 import fileupload from "express-fileupload";
 
-import { config } from "../config";
-import { AppDataSource } from "../config/datasource";
+import { config, AppDataSource } from "../config";
 import { UserRoutes, AuthRoutes, SearchRoutes, $404Route, HomeRoute } from "../routes";
 
 export class Server {
