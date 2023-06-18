@@ -9,6 +9,8 @@ import fileupload from "express-fileupload";
 
 import { config, AppDataSource } from "../config";
 import { UserRoutes, AuthRoutes, SearchRoutes, $404Route, HomeRoute } from "../routes";
+import { User } from ".";
+
 
 export class Server {
 	private app: Express;
@@ -44,6 +46,22 @@ export class Server {
 	private async dbConnection(): Promise<void> {
 		try {
 			await AppDataSource.initialize();
+
+			const [, total]: [User[], number] =
+				await User.findAndCount({ where: { state: true } });
+
+			if (total === 0){
+				const user: User = new User();
+				user.uId;
+				user.firstName = "Admin";
+				user.lastName = "Admin";
+				user.email = "admin@admin.com";
+				user.isAdmin = true;
+				user.photo = {public_id:"", secure_url:""}
+				user.hashPassword("Admin1234");
+				await user.save();
+			}
+
 		} catch (error: unknown) {
 			console.error(error);
 		}
